@@ -23,8 +23,6 @@
     <string name="jarvis_perm_more">다른 선택</string>
     <string name="jarvis_question_type_answer">직접 입력하기</string>
     <string name="jarvis_question_hide_form">입력 닫기</string>
-    <string name="jarvis_menu_sessions">세션 목록</string>
-    <string name="jarvis_menu_new_session">새 세션</string>
     <string name="jarvis_menu_advanced">고급</string>
     <string name="jarvis_butler_loading">집사를 찾는 중…</string>
     <string name="jarvis_butler_none_title">집사가 아직 없습니다</string>
@@ -50,4 +48,6 @@
     <string name="jarvis_phone_status_sent">마지막 보냄 %1$s · 앱 구간 %2$d개</string>
     <string name="jarvis_phone_status_no_permission">권한이 없어 못 보냄 (%1$s)</string>
     <string name="jarvis_phone_status_failed">보내기 실패 %1$s · 코드 %2$s — 다음에 같은 구간부터 다시 보냅니다</string>
+    <!-- 잡담방 (10-09) -->
+    <string name="jarvis_room_chat">잡담</string>
 </resources>

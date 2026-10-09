@@ -196,8 +196,8 @@ fun HapiNavigation() {
         val sessionId = pendingOpenSession ?: return@LaunchedEffect
         graph.pendingOpenSessionId.value = null
         if (graph.hubRegistry.activeHubUrl != null) {
-            // Jarvis: the butler's own session is already the root screen.
-            if (sessionId == app.hapi.companion.feature.jarvis.currentButlerId(activeHubGraph)) {
+            // Jarvis: the butler's (or 잡담's) own session is already the root screen.
+            if (app.hapi.companion.feature.jarvis.openRoomFor(activeHubGraph, sessionId)) {
                 navController.popBackStack(Routes.BUTLER, inclusive = false)
                 return@LaunchedEffect
             }
@@ -250,7 +250,7 @@ fun HapiNavigation() {
                 onSignOut = { scope.launch { graph.signOut(activeHubUrl) } },
                 onOpenSession = { sessionId ->
                     // Jarvis: the butler opens as the root screen, not a second chat.
-                    if (sessionId == app.hapi.companion.feature.jarvis.currentButlerId(hubGraph)) {
+                    if (app.hapi.companion.feature.jarvis.openRoomFor(hubGraph, sessionId)) {
                         navController.popBackStack(Routes.BUTLER, inclusive = false)
                     } else {
                         navController.navigate(Routes.chat(sessionId))

@@ -23,8 +23,6 @@
     <string name="jarvis_perm_more">更多选项</string>
     <string name="jarvis_question_type_answer">改为手动输入</string>
     <string name="jarvis_question_hide_form">收起输入</string>
-    <string name="jarvis_menu_sessions">会话列表</string>
-    <string name="jarvis_menu_new_session">新建会话</string>
     <string name="jarvis_menu_advanced">高级</string>
     <string name="jarvis_butler_loading">正在查找管家…</string>
     <string name="jarvis_butler_none_title">还没有管家</string>
@@ -50,4 +48,6 @@
     <string name="jarvis_phone_status_sent">上次发送 %1$s · %2$d 个应用片段</string>
     <string name="jarvis_phone_status_no_permission">无权限，未发送（%1$s）</string>
     <string name="jarvis_phone_status_failed">发送失败 %1$s · 代码 %2$s — 下次从同一时段重发</string>
+    <!-- 잡담방 (10-09) -->
+    <string name="jarvis_room_chat">闲聊</string>
 </resources>

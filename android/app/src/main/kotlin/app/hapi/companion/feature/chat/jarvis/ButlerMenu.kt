@@ -13,27 +13,27 @@ import app.hapi.companion.R
  * Butler-mode chrome for the chat screen (Jarvis fork). When a chat is shown
  * as the butler, the screen drops its back arrow and settings gear; session
  * list, new session and the advanced settings sheet move into the ⋮ menu
- * instead. Harness hand-overs are the server's job, so there is no entry.
+ * instead. Harness hand-overs are the server's job, so there is no entry. The
+ * session list and new-session entries were dropped too (주현님 10-09) — the
+ * app only has two rooms, the butler and 「잡담」, and ⋮ switches between them.
  */
 data class ButlerMenu(
-    val onOpenSessions: () -> Unit,
-    val onNewSession: () -> Unit,
+    /** Header title of this room — 「집사」 or 「잡담」. */
+    val title: String,
+    /** The other room's name, shown as the first ⋮ entry. */
+    val otherRoom: String,
+    val onOtherRoom: () -> Unit,
     /** Step 7: opens the 「폰 활동」 settings dialog. */
     val onPhoneActivity: () -> Unit = {},
 )
 
-/** Leading ⋮ entries for butler mode; [onAdvanced] opens the model/permission sheet. */
+/** Leading ⋮ entries for butler mode: the other room, phone activity, and [onAdvanced] (model/permission sheet). */
 @Composable
 internal fun ButlerMenuItems(menu: ButlerMenu, onAdvanced: () -> Unit, close: () -> Unit) {
     DropdownMenuItem(
-        text = { Text(stringResource(R.string.jarvis_menu_sessions)) },
-        onClick = { close(); menu.onOpenSessions() },
-        modifier = Modifier.testTag("butler-menu-sessions"),
-    )
-    DropdownMenuItem(
-        text = { Text(stringResource(R.string.jarvis_menu_new_session)) },
-        onClick = { close(); menu.onNewSession() },
-        modifier = Modifier.testTag("butler-menu-new-session"),
+        text = { Text(menu.otherRoom) },
+        onClick = { close(); menu.onOtherRoom() },
+        modifier = Modifier.testTag("butler-menu-room"),
     )
     DropdownMenuItem(
         text = { Text(stringResource(R.string.jarvis_menu_phone_activity)) },

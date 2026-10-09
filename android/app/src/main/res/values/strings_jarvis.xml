@@ -23,8 +23,6 @@
     <string name="jarvis_perm_more">More options</string>
     <string name="jarvis_question_type_answer">Type an answer instead</string>
     <string name="jarvis_question_hide_form">Hide typed answer</string>
-    <string name="jarvis_menu_sessions">Session list</string>
-    <string name="jarvis_menu_new_session">New session</string>
     <string name="jarvis_menu_advanced">Advanced</string>
     <string name="jarvis_butler_loading">Finding the butler…</string>
     <string name="jarvis_butler_none_title">No butler yet</string>
@@ -50,4 +48,6 @@
     <string name="jarvis_phone_status_sent">Last sent %1$s · %2$d app spans</string>
     <string name="jarvis_phone_status_no_permission">Not sent — no permission (%1$s)</string>
     <string name="jarvis_phone_status_failed">Send failed %1$s · code %2$s — will resend the same window</string>
+    <!-- 잡담방 (10-09) -->
+    <string name="jarvis_room_chat">Chat</string>
 </resources>

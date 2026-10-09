@@ -285,7 +285,7 @@ internal fun ChatScreen(
                 title = {
                     // Jarvis: the butler keeps one name; no harness/model/machine line.
                     val header = if (butlerMenu == null) state.header
-                        else state.header.copy(title = stringResource(R.string.jarvis_butler_title), subtitle = null)
+                        else state.header.copy(title = butlerMenu.title, subtitle = null)
                     ChatTitle(header, reconnecting, viewModel::retry)
                 },
                 actions = {
