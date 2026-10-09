@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,7 +60,7 @@ import coil.request.ImageRequest
 /** Step 17: the 「운동」 tab — tick exercises, adjust prefilled sets, save. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun WorkoutScreen(viewModel: WorkoutViewModel) {
+internal fun WorkoutScreen(viewModel: WorkoutViewModel, onBack: () -> Unit) {
     val state by viewModel.state.collectAsState()
     LaunchedEffect(viewModel) { if (state.form == null) viewModel.load() }
     val snackbar = remember { SnackbarHostState() }
@@ -70,6 +71,9 @@ internal fun WorkoutScreen(viewModel: WorkoutViewModel) {
         modifier = Modifier.imePadding(), // typing a set keeps the save bar above the keyboard
         topBar = {
             TopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
+                },
                 title = {
                     Column {
                         Text(stringResource(R.string.jarvis_workout_title))
@@ -261,12 +265,12 @@ private fun Photo(path: String?, entrance: Pair<String, String>?, modifier: Modi
 }
 
 @Composable
-internal fun WorkoutTab() {
+internal fun WorkoutTab(onBack: () -> Unit) {
     val context = LocalContext.current.applicationContext
     val holder = androidx.lifecycle.viewmodel.compose.viewModel<WorkoutViewModelHolder>(
         key = "jarvis-workout",
         factory = app.hapi.companion.di.viewModelFactory { WorkoutViewModelHolder(HttpWorkoutGateway(context)) },
     )
-    WorkoutScreen(holder.viewModel)
+    WorkoutScreen(holder.viewModel, onBack)
 }
 

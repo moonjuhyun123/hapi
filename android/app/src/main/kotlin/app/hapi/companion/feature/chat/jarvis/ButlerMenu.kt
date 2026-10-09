@@ -23,6 +23,8 @@ data class ButlerMenu(
     val title: String,
     /** Step 7: opens the 「폰 활동」 settings dialog. */
     val onPhoneActivity: () -> Unit = {},
+    /** Step 17: opens the 「운동」 log full screen. */
+    val onWorkout: () -> Unit = {},
 )
 
 /**
@@ -36,6 +38,11 @@ internal fun ButlerMenuItems(menu: ButlerMenu, close: () -> Unit, onClearScreen:
         text = { Text(stringResource(R.string.jarvis_menu_clear_screen)) },
         onClick = { close(); onClearScreen() },
         modifier = Modifier.testTag("butler-menu-clear-screen"),
+    )
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.jarvis_menu_workout)) },
+        onClick = { close(); menu.onWorkout() },
+        modifier = Modifier.testTag("butler-menu-workout"),
     )
     DropdownMenuItem(
         text = { Text(stringResource(R.string.jarvis_menu_phone_activity)) },

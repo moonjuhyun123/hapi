@@ -1,10 +1,7 @@
 package app.hapi.companion.feature.jarvis
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -114,7 +111,6 @@ internal fun currentButlerId(hubGraph: HubGraph?): String? = hubGraph?.let { res
  * session list, no harness/model choice. If nothing is globally pinned yet,
  * says so and offers the session list.
  */
-@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 internal fun ButlerRoute(graph: AppGraph, hubGraph: HubGraph, navController: NavHostController) {
     val chats = viewModel<ButlerChats>(key = "butler-chats")
@@ -147,41 +143,34 @@ internal fun ButlerRoute(graph: AppGraph, hubGraph: HubGraph, navController: Nav
     val context = LocalContext.current
     LaunchedEffect(Unit) { PhoneActivityWorker.onAppOpened(context) }
     var phoneActivityOpen by remember { mutableStateOf(false) }
+    var workoutOpen by rememberSaveable { mutableStateOf(false) }
     if (phoneActivityOpen) PhoneActivityDialog(onDismiss = { phoneActivityOpen = false })
 
     val butlerTitle = stringResource(R.string.jarvis_butler_title)
     val menu = remember(butlerTitle) {
-        ButlerMenu(title = butlerTitle, onPhoneActivity = { phoneActivityOpen = true })
+        ButlerMenu(title = butlerTitle, onPhoneActivity = { phoneActivityOpen = true }, onWorkout = { workoutOpen = true })
     }
 
-    // Step 17: bottom tabs — 집사 · 운동 (정본 9장 「앱에 넣는 것」). Hidden while typing.
-    var tab by rememberSaveable { mutableStateOf(JarvisTab.Butler) }
-    val typing = WindowInsets.isImeVisible
-    Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        bottomBar = { if (!typing) JarvisTabBar(tab) { tab = it } },
-    ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {
-            if (tab == JarvisTab.Workout) {
-                app.hapi.companion.feature.jarvis.workout.WorkoutTab()
-            } else {
-                when {
-                    butlerId != null -> key(butlerId) {
-                        ButlerChat(graph, hubGraph, navController, chats, butlerId, menu) { next ->
-                            superseded = butlerId to next
-                            store.scheduleRefresh()
-                        }
-                    }
-                    load == ButlerLoad.Loading -> ButlerMessage(busy = true)
-                    else -> ButlerMessage(
-                        busy = false,
-                        failed = load == ButlerLoad.Failed,
-                        onOpenSessions = { navController.navigate(Routes.HOME) },
-                        onRetry = { refreshToken += 1 },
-                    )
-                }
+    // Step 17: 운동 opens full screen from ⋮ (no bottom tabs — 주현님 10-09 「메뉴에서 운동 누르게 하자」).
+    if (workoutOpen) {
+        BackHandler { workoutOpen = false }
+        app.hapi.companion.feature.jarvis.workout.WorkoutTab(onBack = { workoutOpen = false })
+        return
+    }
+    when {
+        butlerId != null -> key(butlerId) {
+            ButlerChat(graph, hubGraph, navController, chats, butlerId, menu) { next ->
+                superseded = butlerId to next
+                store.scheduleRefresh()
             }
         }
+        load == ButlerLoad.Loading -> ButlerMessage(busy = true)
+        else -> ButlerMessage(
+            busy = false,
+            failed = load == ButlerLoad.Failed,
+            onOpenSessions = { navController.navigate(Routes.HOME) },
+            onRetry = { refreshToken += 1 },
+        )
     }
 }
 

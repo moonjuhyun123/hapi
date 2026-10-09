@@ -63,8 +63,6 @@
     <string name="jarvis_push_permission">집사가 허락을 구합니다</string>
     <string name="jarvis_channel_butler">집사</string>
     <string name="jarvis_channel_butler_desc">집사의 답·질문·허락 요청</string>
-    <string name="jarvis_tab_butler">집사</string>
-    <string name="jarvis_tab_workout">운동</string>
     <string name="jarvis_workout_title">운동</string>
     <string name="jarvis_workout_save">저장</string>
     <string name="jarvis_workout_saved">저장했어요</string>
@@ -76,4 +74,5 @@
     <string name="jarvis_workout_add_set">+ 세트</string>
     <string name="jarvis_workout_kg">kg</string>
     <string name="jarvis_workout_reps">회</string>
+    <string name="jarvis_menu_workout">운동</string>
 </resources>

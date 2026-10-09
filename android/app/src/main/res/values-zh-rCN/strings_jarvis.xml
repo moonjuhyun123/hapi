@@ -63,8 +63,6 @@
     <string name="jarvis_push_permission">管家请求许可</string>
     <string name="jarvis_channel_butler">管家</string>
     <string name="jarvis_channel_butler_desc">管家的回复、提问和许可请求</string>
-    <string name="jarvis_tab_butler">管家</string>
-    <string name="jarvis_tab_workout">训练</string>
     <string name="jarvis_workout_title">训练</string>
     <string name="jarvis_workout_save">保存</string>
     <string name="jarvis_workout_saved">已保存</string>
@@ -76,4 +74,5 @@
     <string name="jarvis_workout_add_set">+ 组</string>
     <string name="jarvis_workout_kg">kg</string>
     <string name="jarvis_workout_reps">次</string>
+    <string name="jarvis_menu_workout">训练</string>
 </resources>
