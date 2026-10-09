@@ -63,6 +63,18 @@ for d, k in DENS.items():
     layer(k, 'fg').save(f'{res}/mipmap-{d}/jarvis_launcher_foreground.png', optimize=True)
     layer(k, 'mono').save(f'{res}/mipmap-{d}/jarvis_launcher_monochrome.png', optimize=True)
 
+# 상태바 알림 아이콘(16단계): 단색 실루엣만 쓰인다(안드로이드가 흰색으로 칠함) — 테마 아이콘과 같은 실루엣을 24dp 칸에 꽉 차게
+bbox = MONO.getbbox()
+sil = MONO.crop(bbox)
+for d, k in DENS.items():
+    C = round(24 * k); inner = round(22 * k)
+    w, h = sil.size; f = inner / max(w, h)
+    small = sil.resize((max(1, round(w * f)), max(1, round(h * f))), Image.LANCZOS)
+    stat = Image.new('RGBA', (C, C), (255, 255, 255, 0))
+    stat.paste(Image.new('RGBA', small.size, (255, 255, 255, 255)), ((C - small.size[0]) // 2, (C - small.size[1]) // 2), small)
+    os.makedirs(f'{res}/drawable-{d}', exist_ok=True)
+    stat.save(f'{res}/drawable-{d}/ic_stat_jarvis.png', optimize=True)
+
 # 미리보기: 원·둥근네모 마스크 + 테마 아이콘
 fg = layer(4, 'fg'); mono = layer(4, 'mono'); C = fg.size[0]
 def masked(shape, theme=False):

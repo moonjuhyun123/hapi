@@ -200,6 +200,10 @@
    - 실측(10-09 22:3x): 우리 Firebase 프로젝트 + 허브 `androidPushMode: fcm` → 기기 등록 200 → 집사가 먼저 말 건 턴의 `ready` 가 폰에 `jarvis_butler` 채널로 뜸(중요도 4·진동 켜짐).
    - 시험: `ButlerPushTest` 6개.
 
+16. **알림 아이콘 = 집사 실루엣 (16단계, 이 서버 — 2026-10-09)**
+   - 상태바 알림 아이콘이 HAPI 것이었다 → 앱 아이콘의 테마 아이콘 실루엣(머리·얼굴·말풍선 꼬리, 콧수염·나비넥타이 구멍)을 24dp 칸에 꽉 채운 `drawable-*/ic_stat_jarvis.png`. 상태바 아이콘은 단색만 쓰인다(시스템이 흰색으로 칠함). 만드는 건 `docs/jarvis/icon/make_icon.py` 한 곳.
+   - `PushNotifications.baseBuilder` 의 `setSmallIcon` 한 줄. 린트 경고 87(+1 = 이제 안 쓰는 위쪽 `ic_stat_hapi`).
+
 ## 새 라이브러리
 
 없습니다.

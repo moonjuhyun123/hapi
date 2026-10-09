@@ -122,7 +122,7 @@ object PushNotifications {
 
     private fun baseBuilder(context: Context, channelId: String, sessionId: String?) =
         NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_stat_hapi)
+            .setSmallIcon(R.drawable.ic_stat_jarvis) // Jarvis (step 16): the butler's silhouette, docs/jarvis/icon
             .apply { sessionId?.let { setContentIntent(openSessionIntent(context, it)) } }
 
     private fun notify(context: Context, tag: String, notification: Notification) {
