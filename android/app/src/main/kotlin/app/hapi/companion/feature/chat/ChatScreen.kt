@@ -374,6 +374,7 @@ internal fun ChatScreen(
                         dictation = if (dictationAvailable) dictationState else null,
                         onDictationToggle = onDictationToggle,
                         onDictationCancel = { dictation?.cancel() },
+                        placeholder = if (butlerMenu != null) stringResource(R.string.jarvis_composer_placeholder) else null,
                     )
                 }
             }

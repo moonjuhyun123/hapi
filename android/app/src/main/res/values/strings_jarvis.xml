@@ -57,4 +57,5 @@
     <string name="jarvis_drive_content_failed">Content search unavailable (%1$s) — names only</string>
     <string name="jarvis_menu_clear_screen">Clear screen</string>
     <string name="jarvis_screen_cleared">Screen cleared · show earlier</string>
+    <string name="jarvis_composer_placeholder">Anything to tell your butler?</string>
 </resources>

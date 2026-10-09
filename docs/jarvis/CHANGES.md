@@ -189,6 +189,9 @@
    - `HandoffChain.kt` 에 `dropHandoffNoise` · `RESEND_LOCAL_ID_PREFIX`, `ChatViewModel.buildUiState` 에서 화면 비우기 다음에 한 번 거른다.
    - 시험: `HandoffNoiseTest` 4개. 서버 쪽은 시험 세션으로 Claude→Codex→Claude 를 끝까지 돌려 확인(비밀 단어·읽은 파일 경로를 받는 쪽이 앎).
 
+14. **입력창 안내 문구 (14단계, 이 서버 — 2026-10-09)**
+   - 집사 화면 입력창 안내를 「에이전트에게 메시지 보내기…」 → **「집사에게 할 말이 있으신가요?」**(주현님 10-09). `ChatComposer` 에 `placeholder` 인자 하나(없으면 위쪽 문구 그대로), `ChatScreen` 이 집사일 때만 넘긴다 — 위쪽 strings.xml 은 손대지 않았다.
+
 ## 새 라이브러리
 
 없습니다.

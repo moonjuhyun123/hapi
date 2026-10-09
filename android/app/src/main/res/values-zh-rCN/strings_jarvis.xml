@@ -57,4 +57,5 @@
     <string name="jarvis_drive_content_failed">内容搜索不可用（%1$s）— 仅按名称</string>
     <string name="jarvis_menu_clear_screen">清空屏幕</string>
     <string name="jarvis_screen_cleared">已清空屏幕 · 显示之前的对话</string>
+    <string name="jarvis_composer_placeholder">有什么要对管家说的吗？</string>
 </resources>
