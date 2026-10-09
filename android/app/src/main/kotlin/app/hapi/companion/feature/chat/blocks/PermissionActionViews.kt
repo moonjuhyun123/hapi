@@ -100,15 +100,15 @@ fun PendingPermissionFooter(
 }
 
 /** `PermissionFooter.isCodexSession` twin (UI button-set selection). */
-private fun isCodexUx(flavor: String?, toolName: String): Boolean =
+internal fun isCodexUx(flavor: String?, toolName: String): Boolean =
     Flavors.isCodexFamily(flavor) || flavor == "cursor" ||
         toolName.startsWith("Codex") || toolName.startsWith("Gemini") ||
         toolName.startsWith("OpenCode") || toolName.startsWith("Copilot") ||
         toolName.startsWith("Cursor")
 
-private val EDIT_TOOLS = setOf("Edit", "MultiEdit", "Write", "NotebookEdit")
+internal val EDIT_TOOLS = setOf("Edit", "MultiEdit", "Write", "NotebookEdit")
 
-private val HIDE_ALLOW_FOR_SESSION = EDIT_TOOLS +
+internal val HIDE_ALLOW_FOR_SESSION = EDIT_TOOLS +
     setOf("exit_plan_mode", "ExitPlanMode", "CursorCreatePlan")
 
 @Composable

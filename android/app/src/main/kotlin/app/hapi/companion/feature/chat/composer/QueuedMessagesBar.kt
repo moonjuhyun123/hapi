@@ -115,7 +115,7 @@ private fun QueuedRow(
                 }
             }
             if (row.indeterminate) {
-                TextButton(onClick = { onRetry(row.id) }, enabled = row.canAct) { Text("Retry") }
+                TextButton(onClick = { onRetry(row.id) }, enabled = row.canAct) { Text(stringResource(R.string.chat_retry)) }
             } else if (row.canSteer) {
                 TextButton(onClick = { onSteer(row.id) }) { Text(stringResource(R.string.chat_queued_steer)) }
             }

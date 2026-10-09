@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Jarvis fork additions (docs/jarvis/CHANGES.md). Kept in a separate file so
+     the upstream strings.xml files stay untouched. -->
+<resources>
+    <string name="jarvis_activity_thinking">Thinking</string>
+    <string name="jarvis_activity_using_tool">Using a tool</string>
+    <string name="jarvis_activity_awaiting_approval">Waiting for approval</string>
+    <string name="jarvis_activity_writing">Writing a reply</string>
+    <string name="jarvis_activity_done">Done</string>
+    <string name="jarvis_activity_step">Step %1$d</string>
+    <string name="jarvis_activity_tools_used">Tools used: %1$d</string>
+    <string name="jarvis_activity_seconds">%1$ds</string>
+    <string name="jarvis_activity_minutes">%1$dm %2$ds</string>
+    <string name="jarvis_activity_open_tool">Open tool details</string>
+    <string name="jarvis_perm_kind_command">Wants to run a command</string>
+    <string name="jarvis_perm_kind_file_edit">Wants to change files</string>
+    <string name="jarvis_perm_kind_web">Wants to access the web</string>
+    <string name="jarvis_perm_kind_other">Wants to use a tool</string>
+    <string name="jarvis_perm_show_raw">Show original</string>
+    <string name="jarvis_perm_hide_raw">Hide original</string>
+    <string name="jarvis_perm_allow">Approve</string>
+    <string name="jarvis_perm_allow_confirm">Tap again to approve</string>
+    <string name="jarvis_perm_more">More options</string>
+    <string name="jarvis_question_type_answer">Type an answer instead</string>
+    <string name="jarvis_question_hide_form">Hide typed answer</string>
+</resources>

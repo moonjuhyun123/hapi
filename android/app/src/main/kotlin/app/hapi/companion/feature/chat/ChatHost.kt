@@ -303,8 +303,7 @@ private fun ToolReader(
                         ToolCallBody(tool, basePath)
                         val permission = tool.permission
                         if (process && !inspected.stale && permission?.status == "pending" && interactions != null) {
-                            PendingPermissionFooter(tool, permission.id, interactions.flavor,
-                                interactions.permissionOverrides[permission.id], interactions.resolvePermission)
+                            app.hapi.companion.feature.chat.jarvis.JarvisPendingRequest(tool, permission.id, interactions)
                         }
                     }
                 }

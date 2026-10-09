@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Jarvis fork additions (docs/jarvis/CHANGES.md). Kept in a separate file so
+     the upstream strings.xml files stay untouched. -->
+<resources>
+    <string name="jarvis_activity_thinking">思考中</string>
+    <string name="jarvis_activity_using_tool">正在使用工具</string>
+    <string name="jarvis_activity_awaiting_approval">等待批准</string>
+    <string name="jarvis_activity_writing">正在撰写回复</string>
+    <string name="jarvis_activity_done">完成</string>
+    <string name="jarvis_activity_step">第 %1$d 步</string>
+    <string name="jarvis_activity_tools_used">使用工具：%1$d</string>
+    <string name="jarvis_activity_seconds">%1$d 秒</string>
+    <string name="jarvis_activity_minutes">%1$d 分 %2$d 秒</string>
+    <string name="jarvis_activity_open_tool">查看工具详情</string>
+    <string name="jarvis_perm_kind_command">请求运行命令</string>
+    <string name="jarvis_perm_kind_file_edit">请求修改文件</string>
+    <string name="jarvis_perm_kind_web">请求访问网络</string>
+    <string name="jarvis_perm_kind_other">请求使用工具</string>
+    <string name="jarvis_perm_show_raw">查看原文</string>
+    <string name="jarvis_perm_hide_raw">收起原文</string>
+    <string name="jarvis_perm_allow">批准</string>
+    <string name="jarvis_perm_allow_confirm">再按一次以批准</string>
+    <string name="jarvis_perm_more">更多选项</string>
+    <string name="jarvis_question_type_answer">改为手动输入</string>
+    <string name="jarvis_question_hide_form">收起输入</string>
+</resources>

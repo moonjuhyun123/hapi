@@ -323,6 +323,10 @@ internal fun ChatScreen(
                     if (!state.header.active && !state.isInitialLoading && !state.loadFailed) {
                         InactiveSessionBar(onReopen = viewModel::reopenSession)
                     }
+                    // Jarvis: thinking / tool / step / writing / done strip.
+                    app.hapi.companion.feature.chat.jarvis.ActivityStatusBar(
+                        blocks = state.blocks, thinking = state.header.thinking, basePath = state.basePath,
+                    )
                     QueuedMessagesBar(
                         rows = queuedRows,
                         onSteer = viewModel::steerQueuedMessage,

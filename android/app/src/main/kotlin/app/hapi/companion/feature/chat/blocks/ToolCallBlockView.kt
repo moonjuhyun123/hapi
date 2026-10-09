@@ -89,21 +89,11 @@ fun ToolCallBlockView(block: ToolCallBlock, basePath: String?, modifier: Modifie
                 val interactions = LocalChatInteractions.current
                 if (permission.status == "pending" && interactions != null) {
                     Surface(color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f)) {
-                        Column {
-                            Text(
-                                stringResource(R.string.chat_tool_awaiting_approval),
-                                style = MaterialTheme.typography.labelLarge,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            )
-                            androidx.compose.material3.TextButton(onClick = { inspection?.openTool(block.id) }) {
-                                Text(stringResource(R.string.chat_view_full_input))
-                            }
-                            PendingPermissionFooter(
-                                tool = tool, requestId = permission.id, flavor = interactions.flavor,
-                                override = interactions.permissionOverrides[permission.id],
-                                onAction = interactions.resolvePermission,
-                            )
-                        }
+                        // Jarvis: summary-first request panel (feature/chat/jarvis).
+                        app.hapi.companion.feature.chat.jarvis.JarvisPendingRequest(
+                            tool = tool, requestId = permission.id, interactions = interactions,
+                            onOpenFull = inspection?.let { { it.openTool(block.id) } },
+                        )
                     }
                 } else PermissionStateRow(permission)
             }

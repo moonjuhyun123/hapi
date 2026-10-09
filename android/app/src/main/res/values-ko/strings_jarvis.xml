@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Jarvis fork additions (docs/jarvis/CHANGES.md). Kept in a separate file so
+     the upstream strings.xml files stay untouched. -->
+<resources>
+    <string name="jarvis_activity_thinking">생각 중</string>
+    <string name="jarvis_activity_using_tool">도구 사용 중</string>
+    <string name="jarvis_activity_awaiting_approval">승인 기다리는 중</string>
+    <string name="jarvis_activity_writing">답 쓰는 중</string>
+    <string name="jarvis_activity_done">끝</string>
+    <string name="jarvis_activity_step">%1$d단계</string>
+    <string name="jarvis_activity_tools_used">도구 %1$d번 사용</string>
+    <string name="jarvis_activity_seconds">%1$d초</string>
+    <string name="jarvis_activity_minutes">%1$d분 %2$d초</string>
+    <string name="jarvis_activity_open_tool">도구 자세히 보기</string>
+    <string name="jarvis_perm_kind_command">명령 실행 요청</string>
+    <string name="jarvis_perm_kind_file_edit">파일 변경 요청</string>
+    <string name="jarvis_perm_kind_web">웹 접근 요청</string>
+    <string name="jarvis_perm_kind_other">도구 사용 요청</string>
+    <string name="jarvis_perm_show_raw">원문 보기</string>
+    <string name="jarvis_perm_hide_raw">원문 접기</string>
+    <string name="jarvis_perm_allow">승인</string>
+    <string name="jarvis_perm_allow_confirm">한 번 더 눌러 승인</string>
+    <string name="jarvis_perm_more">다른 선택</string>
+    <string name="jarvis_question_type_answer">직접 입력하기</string>
+    <string name="jarvis_question_hide_form">입력 닫기</string>
+</resources>

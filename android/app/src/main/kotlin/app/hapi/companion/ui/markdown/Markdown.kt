@@ -132,9 +132,10 @@ fun Markdown(text: String, modifier: Modifier = Modifier) {
         }
         cache.cached(text) ?: prepared
     }
-    val baseStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp, lineHeight = 24.sp)
+    // Jarvis: 26sp leading + 14dp block gap so long Korean answers breathe.
+    val baseStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp, lineHeight = 26.sp)
     CompositionLocalProvider(LocalTextStyle provides baseStyle) {
-        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(14.dp)) {
             if (parsed != null) MarkdownBlockChildren(parsed.document, parsed)
             else Text(text)
         }
