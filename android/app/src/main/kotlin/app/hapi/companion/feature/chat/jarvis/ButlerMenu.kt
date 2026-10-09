@@ -15,26 +15,19 @@ import app.hapi.companion.R
  * list, new session and the advanced settings sheet move into the ⋮ menu
  * instead. Harness hand-overs are the server's job, so there is no entry. The
  * session list and new-session entries were dropped too (주현님 10-09) — the
- * app only has two rooms, the butler and 「잡담」, and ⋮ switches between them.
+ * hub only holds the butler. (A second 「잡담」 room was tried the same day and
+ * folded back: 정본 9장 [새-38].)
  */
 data class ButlerMenu(
-    /** Header title of this room — 「집사」 or 「잡담」. */
+    /** Header title — 「집사」. */
     val title: String,
-    /** The other room's name, shown as the first ⋮ entry. */
-    val otherRoom: String,
-    val onOtherRoom: () -> Unit,
     /** Step 7: opens the 「폰 활동」 settings dialog. */
     val onPhoneActivity: () -> Unit = {},
 )
 
-/** Leading ⋮ entries for butler mode: the other room, phone activity, and [onAdvanced] (model/permission sheet). */
+/** Leading ⋮ entries for butler mode: phone activity and [onAdvanced] (model/permission sheet). */
 @Composable
 internal fun ButlerMenuItems(menu: ButlerMenu, onAdvanced: () -> Unit, close: () -> Unit) {
-    DropdownMenuItem(
-        text = { Text(menu.otherRoom) },
-        onClick = { close(); menu.onOtherRoom() },
-        modifier = Modifier.testTag("butler-menu-room"),
-    )
     DropdownMenuItem(
         text = { Text(stringResource(R.string.jarvis_menu_phone_activity)) },
         onClick = { close(); menu.onPhoneActivity() },

@@ -48,6 +48,4 @@
     <string name="jarvis_phone_status_sent">上次发送 %1$s · %2$d 个应用片段</string>
     <string name="jarvis_phone_status_no_permission">无权限，未发送（%1$s）</string>
     <string name="jarvis_phone_status_failed">发送失败 %1$s · 代码 %2$s — 下次从同一时段重发</string>
-    <!-- 잡담방 (10-09) -->
-    <string name="jarvis_room_chat">闲聊</string>
 </resources>

@@ -48,6 +48,4 @@
     <string name="jarvis_phone_status_sent">마지막 보냄 %1$s · 앱 구간 %2$d개</string>
     <string name="jarvis_phone_status_no_permission">권한이 없어 못 보냄 (%1$s)</string>
     <string name="jarvis_phone_status_failed">보내기 실패 %1$s · 코드 %2$s — 다음에 같은 구간부터 다시 보냅니다</string>
-    <!-- 잡담방 (10-09) -->
-    <string name="jarvis_room_chat">잡담</string>
 </resources>

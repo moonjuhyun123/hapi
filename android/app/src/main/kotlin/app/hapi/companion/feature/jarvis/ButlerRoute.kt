@@ -35,7 +35,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import kotlinx.coroutines.flow.MutableStateFlow
 import app.hapi.companion.feature.jarvis.activity.PhoneActivityDialog
 import app.hapi.companion.feature.jarvis.activity.PhoneActivityWorker
 import androidx.lifecycle.repeatOnLifecycle
@@ -102,27 +101,8 @@ internal fun butlerChatHolder(navController: NavHostController, hubGraph: HubGra
     return ViewModelProvider(entry)["butler-chats", ButlerChats::class.java].existing(butlerChatKey(hubGraph, sessionId))
 }
 
-/** The two fixed rooms (주현님 10-09 「세션 목록이랑 새 세션 필요없음 그냥 잡담 하나」). */
-internal enum class Room { BUTLER, CHAT }
-
-/** Which room the root screen shows — app-wide so a notification tap can pick the room. */
-internal object JarvisRoom {
-    val current = MutableStateFlow(Room.BUTLER)
-}
-
-/**
- * Notification / list taps: if [sessionId] is one of the two rooms, switch the
- * root screen to that room and return true (the caller pops back to it).
- */
-internal fun openRoomFor(hubGraph: HubGraph?, sessionId: String): Boolean {
-    val sessions = hubGraph?.sessionStore?.sessions?.value ?: return false
-    JarvisRoom.current.value = when (sessionId) {
-        resolveButler(sessions)?.id -> Room.BUTLER
-        resolveChatRoom(sessions)?.id -> Room.CHAT
-        else -> return false
-    }
-    return true
-}
+/** Current butler id from the cached list (notification taps reuse the butler view). */
+internal fun currentButlerId(hubGraph: HubGraph?): String? = hubGraph?.let { resolveButler(it.sessionStore.sessions.value)?.id }
 
 /**
  * Root screen once paired: the butler's conversation, straight away. No
@@ -148,9 +128,8 @@ internal fun ButlerRoute(graph: AppGraph, hubGraph: HubGraph, navController: Nav
 
     // A resume/reopen can hand the butler to a new id before the list says so.
     // (Harness hand-overs are the server's: it re-pins and the list follows.)
-    val room by JarvisRoom.current.collectAsState()
-    var superseded by remember(hubGraph, room) { mutableStateOf<Pair<String, String>?>(null) }
-    val resolved = remember(sessions, room) { if (room == Room.CHAT) resolveChatRoom(sessions) else resolveButler(sessions) }
+    var superseded by remember(hubGraph) { mutableStateOf<Pair<String, String>?>(null) }
+    val resolved = remember(sessions) { resolveButler(sessions) }
     val butlerId = butlerIdWithPendingSwitch(resolved?.id, superseded)
     LaunchedEffect(resolved?.id) {
         // The list caught up (or moved on to another butler): drop the hand-off.
@@ -164,21 +143,9 @@ internal fun ButlerRoute(graph: AppGraph, hubGraph: HubGraph, navController: Nav
     var phoneActivityOpen by remember { mutableStateOf(false) }
     if (phoneActivityOpen) PhoneActivityDialog(onDismiss = { phoneActivityOpen = false })
 
-    // The server makes the chat room; until it exists, stay on the butler.
-    LaunchedEffect(room, resolved, load) {
-        if (room == Room.CHAT && resolved == null && load == ButlerLoad.Loaded) JarvisRoom.current.value = Room.BUTLER
-    }
-
     val butlerTitle = stringResource(R.string.jarvis_butler_title)
-    val chatTitle = stringResource(R.string.jarvis_room_chat)
-    val menu = remember(room, butlerTitle, chatTitle) {
-        val inChat = room == Room.CHAT
-        ButlerMenu(
-            title = if (inChat) chatTitle else butlerTitle,
-            otherRoom = if (inChat) butlerTitle else chatTitle,
-            onOtherRoom = { JarvisRoom.current.value = if (inChat) Room.BUTLER else Room.CHAT },
-            onPhoneActivity = { phoneActivityOpen = true },
-        )
+    val menu = remember(butlerTitle) {
+        ButlerMenu(title = butlerTitle, onPhoneActivity = { phoneActivityOpen = true })
     }
 
     when {

@@ -48,6 +48,4 @@
     <string name="jarvis_phone_status_sent">Last sent %1$s · %2$d app spans</string>
     <string name="jarvis_phone_status_no_permission">Not sent — no permission (%1$s)</string>
     <string name="jarvis_phone_status_failed">Send failed %1$s · code %2$s — will resend the same window</string>
-    <!-- 잡담방 (10-09) -->
-    <string name="jarvis_room_chat">Chat</string>
 </resources>

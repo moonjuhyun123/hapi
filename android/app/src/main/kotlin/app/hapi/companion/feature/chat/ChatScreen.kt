@@ -301,9 +301,11 @@ internal fun ChatScreen(
                         onOpenFiles = onOpenFiles,
                         scratchlistCount = scratchlistCount,
                         onOpenScratchlist = if (viewModel.scratchlistEnabled) onOpenScratchlist else null,
-                        onRename = { renameDialogOpen = true },
+                        // Jarvis: the butler can't be renamed or deleted from its own screen —
+                        // the app finds it by its pin and name (주현님 10-09 「이름변경 삭제도 날려버려」).
+                        onRename = if (butlerMenu == null) ({ renameDialogOpen = true }) else null,
                         onReopen = viewModel::reopenSession,
-                        onDelete = { deleteDialogOpen = true },
+                        onDelete = if (butlerMenu == null) ({ deleteDialogOpen = true }) else null,
                         // Draft-level action, relocated from the composer's
                         // own overflow (one less button in the input bar).
                         onParkDraft = if (viewModel.scratchlistEnabled && composerState.text.isNotBlank()) {
@@ -454,9 +456,11 @@ internal fun ChatScreen(
 @Composable
 private fun SessionOverflowMenu(
     active: Boolean,
-    onRename: () -> Unit,
+    /** null ⇒ row hidden (Jarvis butler screen). */
+    onRename: (() -> Unit)?,
     onReopen: () -> Unit,
-    onDelete: () -> Unit,
+    /** null ⇒ row hidden (Jarvis butler screen). */
+    onDelete: (() -> Unit)?,
     onOpenFiles: () -> Unit = {},
     /** Entry-count suffix on the scratchlist row. */
     scratchlistCount: Int = 0,
@@ -499,13 +503,15 @@ private fun SessionOverflowMenu(
             )
         }
         HorizontalDivider()
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.sessions_action_rename)) },
-            onClick = {
-                open = false
-                onRename()
-            },
-        )
+        if (onRename != null) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.sessions_action_rename)) },
+                onClick = {
+                    open = false
+                    onRename()
+                },
+            )
+        }
         if (onParkDraft != null) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.chat_park_draft)) },
@@ -524,13 +530,15 @@ private fun SessionOverflowMenu(
                 },
             )
         }
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.sessions_action_delete), color = MaterialTheme.colorScheme.error) },
-            onClick = {
-                open = false
-                onDelete()
-            },
-        )
+        if (onDelete != null) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.sessions_action_delete), color = MaterialTheme.colorScheme.error) },
+                onClick = {
+                    open = false
+                    onDelete()
+                },
+            )
+        }
     }
 }
 
