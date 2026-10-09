@@ -28,11 +28,17 @@ import kotlinx.coroutines.withContext
  * - `jarvis-handoff-<prev id>`  hand-over packet when the server moves the
  *                                butler to another harness → never drawn, and
  *                                the previous session's conversation is shown
- *                                above as if it were one conversation.
+ *                                above as if it were one conversation. The new
+ *                                harness's short ack to it is not drawn either
+ *                                (step 13 — up to the next user message).
+ * - `jarvis-resend-<msg id>`    a message the old harness never answered, sent
+ *                                again to the new one → not drawn (the original
+ *                                shows above, in the previous session).
  */
 
 const val OUTREACH_LOCAL_ID_PREFIX = "jarvis-out-"
 const val HANDOFF_LOCAL_ID_PREFIX = "jarvis-handoff-"
+const val RESEND_LOCAL_ID_PREFIX = "jarvis-resend-"
 
 /** A cron's "speak first" instruction to the butler. */
 fun isOutreachLocalId(localId: String?): Boolean = localId?.startsWith(OUTREACH_LOCAL_ID_PREFIX) == true
@@ -43,8 +49,30 @@ fun handoffSourceId(localId: String?): String? =
         ?.removePrefix(HANDOFF_LOCAL_ID_PREFIX)
         ?.takeIf { it.isNotBlank() }
 
+/** A message re-sent to the new harness after a hand-over. */
+fun isResendLocalId(localId: String?): Boolean = localId?.startsWith(RESEND_LOCAL_ID_PREFIX) == true
+
 /** Anything the server put in on its own (kept out of the queued-message bar). */
-fun isServerTaggedLocalId(localId: String?): Boolean = isOutreachLocalId(localId) || handoffSourceId(localId) != null
+fun isServerTaggedLocalId(localId: String?): Boolean =
+    isOutreachLocalId(localId) || handoffSourceId(localId) != null || isResendLocalId(localId)
+
+/**
+ * Step 13: rows the hand-over itself produced, dropped before drawing — the
+ * new harness's ack to a packet (agent rows up to the next user message) and
+ * re-sent messages. The reply to a re-sent message is kept: that is the answer
+ * the owner was waiting for. The packet row itself goes via [isHiddenTranscriptBlock].
+ */
+fun dropHandoffNoise(rows: List<WindowMessage>): List<WindowMessage> {
+    var afterPacket = false
+    return rows.filter { row ->
+        if (row.wire.isUserMessage) {
+            afterPacket = handoffSourceId(row.localId) != null
+            !isResendLocalId(row.localId)
+        } else {
+            !afterPacket
+        }
+    }
+}
 
 /** Transcript rows never drawn: hand-over packets. */
 fun isHiddenTranscriptBlock(block: VisibleChatBlock): Boolean =

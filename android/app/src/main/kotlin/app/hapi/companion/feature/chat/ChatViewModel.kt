@@ -1795,7 +1795,9 @@ class ChatViewModel(
             window.hasMore ||
                 inputs.chain.mayHaveMore { app.hapi.companion.feature.chat.jarvis.firstUserLocalIdOfRows(window.messages) }
             )
-        val visibleMessages = app.hapi.companion.feature.chat.jarvis.afterClear(loaded, inputs.clearedThrough)
+        val visibleMessages = app.hapi.companion.feature.chat.jarvis.dropHandoffNoise(
+            app.hapi.companion.feature.chat.jarvis.afterClear(loaded, inputs.clearedThrough),
+        )
 
         val normalized = ArrayList<NormalizedMessage>(visibleMessages.size)
         val seen = HashSet<String>(visibleMessages.size * 2)
