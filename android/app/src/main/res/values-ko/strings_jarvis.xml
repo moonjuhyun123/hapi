@@ -75,4 +75,17 @@
     <string name="jarvis_workout_kg">kg</string>
     <string name="jarvis_workout_reps">회</string>
     <string name="jarvis_menu_workout">운동</string>
+    <string name="jarvis_menu_calendar">캘린더</string>
+    <string name="jarvis_calendar_add">일정 추가</string>
+    <string name="jarvis_calendar_empty">이날은 비어 있어요</string>
+    <string name="jarvis_calendar_all_day">종일</string>
+    <string name="jarvis_calendar_new">새 일정</string>
+    <string name="jarvis_calendar_edit">일정 고치기</string>
+    <string name="jarvis_calendar_title_label">제목</string>
+    <string name="jarvis_calendar_date">날짜</string>
+    <string name="jarvis_calendar_end_date">끝 날짜(선택)</string>
+    <string name="jarvis_calendar_start">시작</string>
+    <string name="jarvis_calendar_end">끝(선택)</string>
+    <string name="jarvis_calendar_delete">지우기</string>
+    <string name="jarvis_calendar_cancel">취소</string>
 </resources>

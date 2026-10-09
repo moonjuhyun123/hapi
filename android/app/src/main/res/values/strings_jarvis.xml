@@ -75,4 +75,17 @@
     <string name="jarvis_workout_kg">kg</string>
     <string name="jarvis_workout_reps">reps</string>
     <string name="jarvis_menu_workout">Workout</string>
+    <string name="jarvis_menu_calendar">Calendar</string>
+    <string name="jarvis_calendar_add">Add event</string>
+    <string name="jarvis_calendar_empty">Nothing on this day</string>
+    <string name="jarvis_calendar_all_day">All day</string>
+    <string name="jarvis_calendar_new">New event</string>
+    <string name="jarvis_calendar_edit">Edit event</string>
+    <string name="jarvis_calendar_title_label">Title</string>
+    <string name="jarvis_calendar_date">Date</string>
+    <string name="jarvis_calendar_end_date">Until (optional)</string>
+    <string name="jarvis_calendar_start">Start</string>
+    <string name="jarvis_calendar_end">End (optional)</string>
+    <string name="jarvis_calendar_delete">Delete</string>
+    <string name="jarvis_calendar_cancel">Cancel</string>
 </resources>

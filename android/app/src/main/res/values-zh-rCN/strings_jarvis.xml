@@ -75,4 +75,17 @@
     <string name="jarvis_workout_kg">kg</string>
     <string name="jarvis_workout_reps">次</string>
     <string name="jarvis_menu_workout">训练</string>
+    <string name="jarvis_menu_calendar">日历</string>
+    <string name="jarvis_calendar_add">添加日程</string>
+    <string name="jarvis_calendar_empty">这天没有安排</string>
+    <string name="jarvis_calendar_all_day">全天</string>
+    <string name="jarvis_calendar_new">新日程</string>
+    <string name="jarvis_calendar_edit">编辑日程</string>
+    <string name="jarvis_calendar_title_label">标题</string>
+    <string name="jarvis_calendar_date">日期</string>
+    <string name="jarvis_calendar_end_date">结束日期(可选)</string>
+    <string name="jarvis_calendar_start">开始</string>
+    <string name="jarvis_calendar_end">结束(可选)</string>
+    <string name="jarvis_calendar_delete">删除</string>
+    <string name="jarvis_calendar_cancel">取消</string>
 </resources>

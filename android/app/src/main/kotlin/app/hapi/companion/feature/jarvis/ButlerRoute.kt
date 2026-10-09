@@ -144,17 +144,23 @@ internal fun ButlerRoute(graph: AppGraph, hubGraph: HubGraph, navController: Nav
     LaunchedEffect(Unit) { PhoneActivityWorker.onAppOpened(context) }
     var phoneActivityOpen by remember { mutableStateOf(false) }
     var workoutOpen by rememberSaveable { mutableStateOf(false) }
+    var calendarOpen by rememberSaveable { mutableStateOf(false) }
     if (phoneActivityOpen) PhoneActivityDialog(onDismiss = { phoneActivityOpen = false })
 
     val butlerTitle = stringResource(R.string.jarvis_butler_title)
     val menu = remember(butlerTitle) {
-        ButlerMenu(title = butlerTitle, onPhoneActivity = { phoneActivityOpen = true }, onWorkout = { workoutOpen = true })
+        ButlerMenu(title = butlerTitle, onPhoneActivity = { phoneActivityOpen = true }, onWorkout = { workoutOpen = true }, onCalendar = { calendarOpen = true })
     }
 
     // Step 17: 운동 opens full screen from ⋮ (no bottom tabs — 주현님 10-09 「메뉴에서 운동 누르게 하자」).
     if (workoutOpen) {
         BackHandler { workoutOpen = false }
         app.hapi.companion.feature.jarvis.workout.WorkoutTab(onBack = { workoutOpen = false })
+        return
+    }
+    if (calendarOpen) {
+        BackHandler { calendarOpen = false }
+        app.hapi.companion.feature.jarvis.calendar.CalendarTab(onBack = { calendarOpen = false })
         return
     }
     when {

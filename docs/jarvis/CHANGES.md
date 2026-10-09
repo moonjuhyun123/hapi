@@ -212,6 +212,13 @@
    - 사진 짝 = `~/lab/v2/workout/exercise_map.json`(종목명 → free-exercise-db id, 20/21 — 풋살 없음), 사진은 서버에 받아 둠(40장 2.8MB).
    - 시험: `WorkoutModelTest` 5개.
 
+18. **캘린더 (18단계, 이 서버 — 2026-10-10)**
+   - 주현님 「구글 캘린더 없어 이제는 — 우리 서버 저장」. ⋮ 「캘린더」 → 전체 화면: 달 격자(오늘 동그라미·일정 제목 두 줄·할 일 점) + 고른 날 목록 + 「+」 추가, 일정 누르면 고치기·지우기.
+   - 보관처 = 서버 `~/brain/raw/calendar/events.jsonl`(덧붙이기만, 규약은 그 폴더 README), 쓰는 쪽은 `~/lab/v2/calendar/cal.py` 하나(앱 입구·집사·사람). 입구 = 운동과 같은 서버(`/calendar/month`·`/calendar/event`).
+   - 기한 있는 할 일 = Waiting 의 깨울 날짜를 읽어 같은 날 칸에 겹쳐 보인다(복사 안 함).
+   - 입구 호출은 `EntranceHttp` 하나로 묶었다(운동·캘린더 공용).
+   - 시험: `CalendarModelTest` 4개.
+
 ## 새 라이브러리
 
 없습니다.
