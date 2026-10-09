@@ -57,16 +57,13 @@ internal fun PhoneActivityDialog(onDismiss: () -> Unit) {
     }
 
     val s = settings ?: return
+    // Saved on every keystroke: the dialog's coroutine scope dies with the dialog, so a save fired from
+    // 「닫기」 got cancelled before DataStore wrote it (seen on the A36, 10-09).
     val urlText = url ?: s.url
     val tokenText = token ?: s.token
 
-    fun save() = scope.launch {
-        url?.let { prefs.setUrl(it) }
-        token?.let { prefs.setToken(it) }
-    }
-
     AlertDialog(
-        onDismissRequest = { save(); onDismiss() },
+        onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.jarvis_phone_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -82,7 +79,7 @@ internal fun PhoneActivityDialog(onDismiss: () -> Unit) {
                 }
                 OutlinedTextField(
                     value = urlText,
-                    onValueChange = { url = it },
+                    onValueChange = { url = it; scope.launch { prefs.setUrl(it) } },
                     label = { Text(stringResource(R.string.jarvis_phone_url)) },
                     placeholder = { Text("https://") },
                     singleLine = true,
@@ -90,7 +87,7 @@ internal fun PhoneActivityDialog(onDismiss: () -> Unit) {
                 )
                 OutlinedTextField(
                     value = tokenText,
-                    onValueChange = { token = it },
+                    onValueChange = { token = it; scope.launch { prefs.setToken(it) } },
                     label = { Text(stringResource(R.string.jarvis_phone_token)) },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
@@ -109,12 +106,12 @@ internal fun PhoneActivityDialog(onDismiss: () -> Unit) {
                     }
                     OutlinedButton(
                         enabled = s.enabled && permitted && urlText.isNotBlank(),
-                        onClick = { save(); PhoneActivityWorker.sendNow(context) },
+                        onClick = { PhoneActivityWorker.sendNow(context) },
                     ) { Text(stringResource(R.string.jarvis_phone_send_now)) }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { save(); onDismiss() }) { Text(stringResource(R.string.jarvis_phone_close)) } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.jarvis_phone_close)) } },
     )
 }
 
