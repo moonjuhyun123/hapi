@@ -27,7 +27,7 @@
 | `kotlin/.../feature/settings/SettingsScreen.kt` | +1 | 언어 선택지 이름 「한국어」 |
 | `res/xml/locales_config.xml` | +1 | 안드로이드 「앱별 언어」 설정에 `ko` 등록 |
 | `res/values*/strings.xml` | 1줄씩 | (10단계) 앱 이름 `app_name` 「HAPI」→「집사」 |
-| `AndroidManifest.xml` | +4 | (7단계) 사용 기록 접근 권한 `PACKAGE_USAGE_STATS` 한 줄(사용자가 시스템 설정에서 직접 켜는 특수 권한) |
+| `AndroidManifest.xml` | +4 · 2줄 바꿈 | (7단계) 사용 기록 접근 권한 `PACKAGE_USAGE_STATS` 한 줄(사용자가 시스템 설정에서 직접 켜는 특수 권한) · (11단계) `android:icon`·`roundIcon` → `jarvis_launcher` |
 
 ## 새로 만든 파일
 
@@ -60,6 +60,8 @@
 | `android/app/src/main/kotlin/.../feature/jarvis/drive/DriveViewModelHolder.kt` | (9단계) 화면 돌려도 상태 유지 |
 | `android/app/src/test/kotlin/.../feature/jarvis/drive/DriveViewModelTest.kt` | (9단계) JVM 시험 5개 |
 | `android/app/src/main/kotlin/.../feature/jarvis/drive/ContentSearchClient.kt` | (10단계) 우리 서버 내용 검색 부르기(입구·토큰 = 폰 활동 것) |
+| `android/app/src/main/res/mipmap-*/jarvis_launcher_*` · `values/colors_jarvis.xml` | (11단계) 집사 아이콘 층 · 바탕색 |
+| `docs/jarvis/icon/` | (11단계) 아이콘 원본 · 층 만드는 도구 · 미리보기 |
 | `docs/jarvis/X5-코드확인.md` | 0단계 코드 확인 답 |
 | `docs/jarvis/CHANGES.md` | 이 문서 |
 
@@ -167,6 +169,12 @@
    - 알려진 한계: 파일 하나 = 벡터 하나(앞 512토큰) — 긴 파일(정본 등) 뒤쪽 절은 뜻으로 못 찾고 글자로만 찾는다. 색인은 지은 시점 그대로 — 새 파일 반영은 다시 짓기(바뀐 것만 계산).
    - 시험: `DriveViewModelTest` 에 2개(내용 먼저·이름 중복 없음 · 내용 실패 알림). A36 에서 「workout」 검색 → 운동 기록 + 미리보기 확인.
 
+11. **앱 아이콘 = 집사 (11단계, 이 서버 — 2026-10-09)**
+   - 주현님 그림(남색 바탕 · 흰 말풍선 얼굴 · 머리 · 콧수염 · 금테 나비넥타이)을 적응형 아이콘으로. 원본 `docs/jarvis/icon/source.png`(1024), 층 만드는 도구 `docs/jarvis/icon/make_icon.py`, 미리보기 `preview.png`(원·둥근네모·테마 아이콘).
+   - 앞 그림 = 원본을 내용 반지름 32dp(안전원 66dp 안)로 줄여 붙이고 가장자리를 투명으로 번지게, 바탕 = 단색 `#012D70`(원본 남색과 같음 — 이음매 없음). 단색(테마 아이콘) = 머리·얼굴·말풍선 꼬리 실루엣에 콧수염·나비넥타이 속을 구멍으로.
+   - 위 둘을 `jarvis_launcher`·`jarvis_launcher_round` 로 새로 만들고 매니페스트 `android:icon`·`roundIcon` 두 줄만 바꿨다 — 위쪽 원래 아이콘 파일은 손대지 않았다(린트 미사용 경고 4개는 그래서).
+   - 확인: `aapt2 dump badging` → label 「집사」 · icon `jarvis_launcher.xml`. A36 에 설치(홈 화면 확인은 주현님).
+
 ## 새 라이브러리
 
 없습니다.
@@ -182,6 +190,7 @@
 - 8단계(이 서버, 2026-10-09): 잡담방 걷어낸 뒤 app 시험 284개 실패 0 · 린트 오류 0. A36 ⋮ = 「폰 활동·고급·세션 파일·스크래치리스트」 확인.
 - 9단계(이 서버, 2026-10-09): app 시험 289개 실패 0(새 5개) · 린트 오류 0.
 - 10단계(이 서버, 2026-10-09): app 시험 291개 실패 0(새 2개) · 린트 오류 0.
+- 11단계(이 서버, 2026-10-09): 린트 오류 0 · 경고 86(82 → +4 = 이제 안 쓰는 위쪽 원래 아이콘).
 - **못 돌린 것**: 기기·에뮬레이터가 없어 Compose 계측 시험(`connectedDebugAndroidTest`)과 실제 화면 확인은 못 했습니다.
 
 ## 남은 영어 (일부러 그대로 둠)
