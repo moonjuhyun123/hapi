@@ -54,4 +54,5 @@
     <string name="jarvis_drive_empty">빈 폴더</string>
     <string name="jarvis_drive_no_match">찾는 파일이 없습니다</string>
     <string name="jarvis_drive_error">불러오지 못했습니다</string>
+    <string name="jarvis_drive_content_failed">내용 검색이 안 됩니다(%1$s) — 이름으로만 찾았습니다</string>
 </resources>

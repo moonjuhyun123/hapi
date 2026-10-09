@@ -128,12 +128,27 @@ private fun FolderView(state: DriveUiState, onOpenFolder: (String) -> Unit, onOp
 
 @Composable
 private fun SearchView(state: DriveUiState, onOpenFile: (String) -> Unit) {
+    val nothing = state.hits.isEmpty() && state.results.isEmpty()
     when {
-        state.searching && state.results.isEmpty() -> Centered { CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp) }
+        state.searching && nothing -> Centered { CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp) }
         state.searchError != null -> Centered { Text(state.searchError.ifEmpty { stringResource(R.string.jarvis_drive_error) }, color = MaterialTheme.colorScheme.error) }
-        state.searched && state.results.isEmpty() -> Centered { Text(stringResource(R.string.jarvis_drive_no_match), color = MaterialTheme.hapi.hint) }
+        state.searched && nothing -> Centered { Text(stringResource(R.string.jarvis_drive_no_match), color = MaterialTheme.hapi.hint) }
         else -> LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(state.results, key = { it.fullPath }) { item: FileSearchItem ->
+            // Content search couldn't run — say so instead of quietly showing names only.
+            state.contentError?.let { error ->
+                item(key = "content-error") {
+                    Text(
+                        stringResource(R.string.jarvis_drive_content_failed, error),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                }
+            }
+            items(state.hits, key = { "hit:" + it.path }) { hit ->
+                EntryRow(glyph = FileGlyph, folder = false, title = hit.title, subtitle = hit.snippet.ifEmpty { hit.path }) { onOpenFile(hit.path) }
+            }
+            items(state.results, key = { "name:" + it.fullPath }) { item: FileSearchItem ->
                 EntryRow(
                     glyph = FileGlyph,
                     folder = false,
@@ -183,7 +198,7 @@ private fun EntryRow(glyph: ImageVector, folder: Boolean, title: String, subtitl
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            subtitle?.let { Text(it, fontSize = 12.sp, color = MaterialTheme.hapi.hint, maxLines = 1, overflow = TextOverflow.MiddleEllipsis) }
+            subtitle?.let { Text(it, fontSize = 12.sp, color = MaterialTheme.hapi.hint, maxLines = 2, overflow = TextOverflow.Ellipsis) }
         }
     }
 }

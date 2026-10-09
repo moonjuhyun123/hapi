@@ -9,10 +9,15 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 
 /** Keeps the drive's state across configuration changes (twin of the upstream files holder). */
-internal class DriveViewModelHolder(hubGraph: HubGraph, sessionId: String) : ViewModel() {
+internal class DriveViewModelHolder(hubGraph: HubGraph, sessionId: String, contentSearch: ContentSearch? = null) : ViewModel() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    val viewModel = DriveViewModel(sessionId = sessionId, gateway = ApiFilesGateway(hubGraph.session.api), scope = scope)
+    val viewModel = DriveViewModel(
+        sessionId = sessionId,
+        gateway = ApiFilesGateway(hubGraph.session.api),
+        scope = scope,
+        contentSearch = contentSearch,
+    )
 
     override fun onCleared() {
         scope.cancel()

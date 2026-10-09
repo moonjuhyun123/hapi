@@ -24,8 +24,8 @@ class DriveViewModelTest {
     private fun dir(name: String) = DirectoryEntry(name = name, type = "directory")
     private fun file(name: String, size: Long = 10) = DirectoryEntry(name = name, type = "file", size = size)
 
-    private fun TestScope.build(gateway: FakeFilesGateway) =
-        DriveViewModel("s1", gateway, CoroutineScope(SupervisorJob() + StandardTestDispatcher(testScheduler)), searchDebounceMs = 100)
+    private fun TestScope.build(gateway: FakeFilesGateway, content: ContentSearch? = null) =
+        DriveViewModel("s1", gateway, CoroutineScope(SupervisorJob() + StandardTestDispatcher(testScheduler)), searchDebounceMs = 100, contentSearch = content)
 
     @Test
     fun `crumbs and parent`() {
@@ -111,5 +111,48 @@ class DriveViewModelTest {
         advanceUntilIdle()
         assertEquals("denied", vm.state.value.error)
         assertFalse(vm.state.value.loading)
+    }
+
+    @Test
+    fun `content hits come first and name matches don't repeat them`() = runTest {
+        val gateway = FakeFilesGateway().apply {
+            directories[null] = ListDirectoryResponse(success = true, entries = emptyList())
+            searchResult = FileSearchResponse(
+                success = true,
+                files = listOf(
+                    FileSearchItem(fileName = "rules.md", filePath = "jarvis", fullPath = "jarvis/rules.md", fileType = "file"),
+                    FileSearchItem(fileName = "rules-old.md", filePath = "jarvis", fullPath = "jarvis/rules-old.md", fileType = "file"),
+                ),
+            )
+        }
+        val vm = build(gateway) { listOf(DriveHit("jarvis/rules.md", "rules", "판단 규칙…"), DriveHit("raw/x.md", "x", "")) }
+        vm.start()
+        advanceUntilIdle()
+        vm.setQuery("규칙")
+        advanceTimeBy(150)
+        advanceUntilIdle()
+        assertEquals(listOf("jarvis/rules.md", "raw/x.md"), vm.state.value.hits.map { it.path })
+        assertEquals(listOf("jarvis/rules-old.md"), vm.state.value.results.map { it.fullPath })
+        assertEquals(null, vm.state.value.contentError)
+    }
+
+    @Test
+    fun `a failed content search is shown, names still come back`() = runTest {
+        val gateway = FakeFilesGateway().apply {
+            directories[null] = ListDirectoryResponse(success = true, entries = emptyList())
+            searchResult = FileSearchResponse(
+                success = true,
+                files = listOf(FileSearchItem(fileName = "a.md", filePath = "", fullPath = "a.md", fileType = "file")),
+            )
+        }
+        val vm = build(gateway) { error("내용 검색 500") }
+        vm.start()
+        advanceUntilIdle()
+        vm.setQuery("a")
+        advanceTimeBy(150)
+        advanceUntilIdle()
+        assertEquals("내용 검색 500", vm.state.value.contentError)
+        assertEquals(listOf("a.md"), vm.state.value.results.map { it.fullPath })
+        assertEquals(null, vm.state.value.searchError)
     }
 }

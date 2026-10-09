@@ -366,7 +366,11 @@ fun HapiNavigation() {
             if (sessionId == app.hapi.companion.feature.jarvis.currentButlerId(hubGraph)) {
                 val drive = viewModel<app.hapi.companion.feature.jarvis.drive.DriveViewModelHolder>(
                     key = "drive:${hubGraph.hubUrl}:$sessionId",
-                    factory = viewModelFactory { app.hapi.companion.feature.jarvis.drive.DriveViewModelHolder(hubGraph, sessionId) },
+                    factory = viewModelFactory {
+                        app.hapi.companion.feature.jarvis.drive.DriveViewModelHolder(
+                            hubGraph, sessionId, app.hapi.companion.feature.jarvis.drive.contentSearchFor(filesContext),
+                        )
+                    },
                 )
                 app.hapi.companion.feature.jarvis.drive.DriveScreen(
                     viewModel = drive.viewModel,

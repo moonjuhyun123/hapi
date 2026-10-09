@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">HAPI</string>
+    <string name="app_name">집사</string>
 
     <!-- Markdown / 코드 / diff 렌더링 (B-M2d1) -->
     <string name="code_copy">복사</string>

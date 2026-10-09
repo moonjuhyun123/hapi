@@ -54,4 +54,5 @@
     <string name="jarvis_drive_empty">Empty folder</string>
     <string name="jarvis_drive_no_match">No matching files</string>
     <string name="jarvis_drive_error">Could not load</string>
+    <string name="jarvis_drive_content_failed">Content search unavailable (%1$s) — names only</string>
 </resources>

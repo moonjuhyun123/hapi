@@ -26,6 +26,7 @@
 | `kotlin/.../feature/settings/LanguagePrefs.kt` | +2 −1 | 앱 언어 목록에 한국어(`KOREAN`) 추가 |
 | `kotlin/.../feature/settings/SettingsScreen.kt` | +1 | 언어 선택지 이름 「한국어」 |
 | `res/xml/locales_config.xml` | +1 | 안드로이드 「앱별 언어」 설정에 `ko` 등록 |
+| `res/values*/strings.xml` | 1줄씩 | (10단계) 앱 이름 `app_name` 「HAPI」→「집사」 |
 | `AndroidManifest.xml` | +4 | (7단계) 사용 기록 접근 권한 `PACKAGE_USAGE_STATS` 한 줄(사용자가 시스템 설정에서 직접 켜는 특수 권한) |
 
 ## 새로 만든 파일
@@ -58,6 +59,7 @@
 | `android/app/src/main/kotlin/.../feature/jarvis/drive/DriveScreen.kt` | (9단계) 드라이브 화면 |
 | `android/app/src/main/kotlin/.../feature/jarvis/drive/DriveViewModelHolder.kt` | (9단계) 화면 돌려도 상태 유지 |
 | `android/app/src/test/kotlin/.../feature/jarvis/drive/DriveViewModelTest.kt` | (9단계) JVM 시험 5개 |
+| `android/app/src/main/kotlin/.../feature/jarvis/drive/ContentSearchClient.kt` | (10단계) 우리 서버 내용 검색 부르기(입구·토큰 = 폰 활동 것) |
 | `docs/jarvis/X5-코드확인.md` | 0단계 코드 확인 답 |
 | `docs/jarvis/CHANGES.md` | 이 문서 |
 
@@ -156,6 +158,15 @@
    - 원본은 건드린 곳만: `Navigation.kt`(집사 세션의 파일 경로면 드라이브로) · `ChatScreen.kt`(집사면 파일 줄 이름 「드라이브」, 스크래치리스트·초안 넣기 숨김, 아래 칸이 다 숨으면 구분선도 숨김). 허브 API 새것 없음.
    - 시험: `DriveViewModelTest` 5개(경로·정렬·폴더 들어갔다 나오기·검색과 뒤로·목록 실패). A36 에서 드라이브 열림·폴더 진입·뒤로 확인.
 
+10. **드라이브 내용 검색 · 앱 이름 「집사」 (10단계, 이 서버 — 2026-10-09)**
+   - 주현님 「드라이브에서 찾기에도 모델 가벼운 거 붙여줄 수 있냐 — 하네스 의존 없이?」. 정본 7장 검색(X3 실측) 그대로 — **글자(bigram FTS5) + 원문 벡터(서버 로컬 e5-large)**, 질문은 펼치지 않는다(LLM 으로 펼치면 실제 데이터에서 떨어졌다). 하네스·모델 API 를 안 쓴다.
+   - 검색창에 치면 **우리 서버 내용 검색**(`GET <입구>/drive-search?q=`)과 **허브 이름 검색**을 같이 돌려 내용 결과(제목 + 그 문장 미리보기)를 먼저, 이름만 맞은 파일을 그다음에(겹치면 한 번) 보인다. 내용 검색이 실패하면 숨기지 않고 한 줄로 알린다.
+   - 입구 주소·토큰은 「폰 활동」 창의 것을 같이 쓴다. 비어 있으면 이름 검색만.
+   - 앱 이름(`app_name`) = **「집사」**(세 언어 모두).
+   - 서버 쪽(포크 밖): 색인 `~/lab/v2/drive/build.py`(볼트 .md 2,252개 — raw/letters·newsvideo·newnews·.claude 뺌), 검색 입구 `~/lab/v2/drive/server.py`(127.0.0.1:3018, 터널 `path: ^/drive-search$`). 한 번에 0.03~0.2초.
+   - 알려진 한계: 파일 하나 = 벡터 하나(앞 512토큰) — 긴 파일(정본 등) 뒤쪽 절은 뜻으로 못 찾고 글자로만 찾는다. 색인은 지은 시점 그대로 — 새 파일 반영은 다시 짓기(바뀐 것만 계산).
+   - 시험: `DriveViewModelTest` 에 2개(내용 먼저·이름 중복 없음 · 내용 실패 알림). A36 에서 「workout」 검색 → 운동 기록 + 미리보기 확인.
+
 ## 새 라이브러리
 
 없습니다.
@@ -170,6 +181,7 @@
 - 7단계(이 서버, 2026-10-09): `./gradlew :app:testDebugUnitTest :app:lintDebug` — **성공**. app 시험 284개 실패 0(새 11개: 구간·본문 모양) · 린트 오류 0, 새 경고 1개(「앱 구간 %d개」 문자열에 복수형 권고 — 한국어엔 의미 없어 둠). 빌드 `:app:assembleDebug` 성공.
 - 8단계(이 서버, 2026-10-09): 잡담방 걷어낸 뒤 app 시험 284개 실패 0 · 린트 오류 0. A36 ⋮ = 「폰 활동·고급·세션 파일·스크래치리스트」 확인.
 - 9단계(이 서버, 2026-10-09): app 시험 289개 실패 0(새 5개) · 린트 오류 0.
+- 10단계(이 서버, 2026-10-09): app 시험 291개 실패 0(새 2개) · 린트 오류 0.
 - **못 돌린 것**: 기기·에뮬레이터가 없어 Compose 계측 시험(`connectedDebugAndroidTest`)과 실제 화면 확인은 못 했습니다.
 
 ## 남은 영어 (일부러 그대로 둠)

@@ -5,6 +5,8 @@ import app.hapi.protocol.wire.FileSearchItem
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +32,12 @@ data class DriveEntry(
     val modified: Long? = null,
 )
 
+/** A content-search hit from our server (정본 7장 search: words + passage vectors), not the hub. */
+data class DriveHit(val path: String, val title: String, val snippet: String)
+
+/** Our server's content search; null when no entrance is configured. Throws on failure. */
+typealias ContentSearch = suspend (query: String) -> List<DriveHit>
+
 data class DriveUiState(
     /** Current folder, `""` = session root. */
     val path: String = "",
@@ -38,6 +46,10 @@ data class DriveUiState(
     val error: String? = null,
     val query: String = "",
     val results: List<FileSearchItem> = emptyList(),
+    /** Content hits (meaning/words inside files) — shown before name-only matches. */
+    val hits: List<DriveHit> = emptyList(),
+    /** Content search failed or isn't set up; name search still shows. */
+    val contentError: String? = null,
     val searching: Boolean = false,
     /** True once a non-blank query has come back (empty results ≠ not searched yet). */
     val searched: Boolean = false,
@@ -64,6 +76,7 @@ class DriveViewModel(
     private val gateway: FilesGateway,
     private val scope: CoroutineScope,
     private val searchDebounceMs: Long = 250,
+    private val contentSearch: ContentSearch? = null,
 ) {
     private val stateFlow = MutableStateFlow(DriveUiState())
     val state: StateFlow<DriveUiState> = stateFlow.asStateFlow()
@@ -79,7 +92,7 @@ class DriveViewModel(
         scope.launch {
             queryInput.collectLatest { query ->
                 if (query.isBlank()) {
-                    stateFlow.update { it.copy(results = emptyList(), searching = false, searched = false, searchError = null) }
+                    stateFlow.update { it.copy(results = emptyList(), hits = emptyList(), contentError = null, searching = false, searched = false, searchError = null) }
                     return@collectLatest
                 }
                 delay(searchDebounceMs)
@@ -134,21 +147,41 @@ class DriveViewModel(
         queryInput.value = query
     }
 
-    private suspend fun runSearch(query: String) {
-        stateFlow.update { it.copy(searching = true, searchError = null) }
-        try {
-            val response = gateway.searchFiles(sessionId, query, SEARCH_LIMIT)
-            stateFlow.update {
-                if (response.success) {
-                    it.copy(results = response.files.orEmpty(), searching = false, searched = true)
-                } else {
-                    it.copy(results = emptyList(), searching = false, searched = true, searchError = response.error ?: "")
+    private suspend fun runSearch(query: String) = coroutineScope {
+        stateFlow.update { it.copy(searching = true, searchError = null, contentError = null) }
+        // Both at once: our content search (meaning) and the hub's name search.
+        val content = contentSearch?.let { search ->
+            async {
+                try {
+                    Result.success(search(query))
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Result.failure(e)
                 }
             }
+        }
+        val names = try {
+            val response = gateway.searchFiles(sessionId, query, SEARCH_LIMIT)
+            if (response.success) Result.success(response.files.orEmpty()) else Result.failure(IllegalStateException(response.error ?: ""))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            stateFlow.update { it.copy(searching = false, searched = true, searchError = e.message ?: "") }
+            Result.failure(e)
+        }
+        val contentResult = content?.await()
+        val hits = contentResult?.getOrNull().orEmpty()
+        val hitPaths = hits.map { it.path }.toSet()
+        stateFlow.update {
+            it.copy(
+                hits = hits,
+                // Name-only matches after the content hits, without repeating a file.
+                results = names.getOrNull().orEmpty().filter { item -> item.fullPath !in hitPaths },
+                contentError = contentResult?.exceptionOrNull()?.let { e -> e.message ?: e.javaClass.simpleName },
+                searchError = if (names.isFailure && hits.isEmpty()) names.exceptionOrNull()?.message ?: "" else null,
+                searching = false,
+                searched = true,
+            )
         }
     }
 
