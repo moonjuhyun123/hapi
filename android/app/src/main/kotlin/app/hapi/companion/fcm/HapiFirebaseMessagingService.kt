@@ -39,6 +39,20 @@ class HapiFirebaseMessagingService : FirebaseMessagingService() {
         }
         // In-app language (B-M5a): notification strings resolve from this
         // service context, which per-app locales miss on API < 33.
-        PushNotifications.show(localizedForAppLanguage(graph.appLanguage.value), payload)
+        val context = localizedForAppLanguage(graph.appLanguage.value)
+        // Jarvis 집사 알림 (step 15): 「집사」 + what it said; a hand-over ack stays silent.
+        val latest = if (payload.type == app.hapi.data.push.PushType.READY) {
+            kotlinx.coroutines.runBlocking { app.hapi.companion.feature.jarvis.push.fetchLatestReply(graph.pushHubAccess, payload.sessionId) }
+        } else {
+            null
+        }
+        val labels = app.hapi.companion.feature.jarvis.push.ButlerPushLabels(
+            butler = context.getString(app.hapi.companion.R.string.jarvis_butler_title),
+            replied = context.getString(app.hapi.companion.R.string.jarvis_push_replied),
+            asks = context.getString(app.hapi.companion.R.string.jarvis_push_asks),
+            permission = context.getString(app.hapi.companion.R.string.jarvis_push_permission),
+        )
+        val shown = app.hapi.companion.feature.jarvis.push.butlerPush(payload, latest, labels) ?: return
+        PushNotifications.show(context, shown)
     }
 }

@@ -58,4 +58,7 @@
     <string name="jarvis_menu_clear_screen">Clear screen</string>
     <string name="jarvis_screen_cleared">Screen cleared · show earlier</string>
     <string name="jarvis_composer_placeholder">Anything to tell your butler?</string>
+    <string name="jarvis_push_replied">The butler replied</string>
+    <string name="jarvis_push_asks">Your butler has a question</string>
+    <string name="jarvis_push_permission">Your butler asks for permission</string>
 </resources>

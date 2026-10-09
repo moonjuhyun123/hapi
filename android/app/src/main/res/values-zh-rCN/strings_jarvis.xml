@@ -58,4 +58,7 @@
     <string name="jarvis_menu_clear_screen">清空屏幕</string>
     <string name="jarvis_screen_cleared">已清空屏幕 · 显示之前的对话</string>
     <string name="jarvis_composer_placeholder">有什么要对管家说的吗？</string>
+    <string name="jarvis_push_replied">管家已回复</string>
+    <string name="jarvis_push_asks">管家有个问题</string>
+    <string name="jarvis_push_permission">管家请求许可</string>
 </resources>
