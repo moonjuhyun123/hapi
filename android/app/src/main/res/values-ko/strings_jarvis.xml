@@ -34,4 +34,20 @@
     <string name="jarvis_butler_retry">다시 확인</string>
     <string name="jarvis_butler_title">집사</string>
     <string name="jarvis_outreach_chip">⏰ 집사가 먼저 말을 걸었습니다 · %1$s</string>
+    <!-- 7단계: 폰 활동 보내기 -->
+    <string name="jarvis_menu_phone_activity">폰 활동</string>
+    <string name="jarvis_phone_title">폰 활동 보내기</string>
+    <string name="jarvis_phone_explain">안드로이드가 원래 모아 두는 앱 사용 기록(어떤 앱을 언제부터 언제까지)만 읽어 집사 서버로 보냅니다. 창 제목·알림·메시지 내용은 읽지 않습니다.</string>
+    <string name="jarvis_phone_enable">보내기</string>
+    <string name="jarvis_phone_url">수집 입구 주소</string>
+    <string name="jarvis_phone_token">토큰</string>
+    <string name="jarvis_phone_permission_ok">사용 기록 접근: 허용됨</string>
+    <string name="jarvis_phone_permission_missing">사용 기록 접근: 허용 안 됨</string>
+    <string name="jarvis_phone_open_permission">권한 열기</string>
+    <string name="jarvis_phone_send_now">지금 보내기</string>
+    <string name="jarvis_phone_close">닫기</string>
+    <string name="jarvis_phone_status_none">아직 보낸 적 없음</string>
+    <string name="jarvis_phone_status_sent">마지막 보냄 %1$s · 앱 구간 %2$d개</string>
+    <string name="jarvis_phone_status_no_permission">권한이 없어 못 보냄 (%1$s)</string>
+    <string name="jarvis_phone_status_failed">보내기 실패 %1$s · 코드 %2$s — 다음에 같은 구간부터 다시 보냅니다</string>
 </resources>

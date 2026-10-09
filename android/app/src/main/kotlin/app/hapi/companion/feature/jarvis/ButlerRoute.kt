@@ -35,6 +35,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import app.hapi.companion.feature.jarvis.activity.PhoneActivityDialog
+import app.hapi.companion.feature.jarvis.activity.PhoneActivityWorker
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -135,10 +137,17 @@ internal fun ButlerRoute(graph: AppGraph, hubGraph: HubGraph, navController: Nav
     }
     LaunchedEffect(butlerId) { chats.retainOnly(butlerId?.let { butlerChatKey(hubGraph, it) }) }
 
+    // Step 7: phone activity rides along with the butler — schedule on open, settings in ⋮.
+    val context = LocalContext.current
+    LaunchedEffect(Unit) { PhoneActivityWorker.onAppOpened(context) }
+    var phoneActivityOpen by remember { mutableStateOf(false) }
+    if (phoneActivityOpen) PhoneActivityDialog(onDismiss = { phoneActivityOpen = false })
+
     val menu = remember(navController) {
         ButlerMenu(
             onOpenSessions = { navController.navigate(Routes.HOME) },
             onNewSession = { navController.navigate(Routes.newSession()) },
+            onPhoneActivity = { phoneActivityOpen = true },
         )
     }
 

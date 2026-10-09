@@ -34,4 +34,20 @@
     <string name="jarvis_butler_retry">重新检查</string>
     <string name="jarvis_butler_title">管家</string>
     <string name="jarvis_outreach_chip">⏰ 管家主动发来消息 · %1$s</string>
+    <!-- 7단계: 폰 활동 보내기 -->
+    <string name="jarvis_menu_phone_activity">手机活动</string>
+    <string name="jarvis_phone_title">发送手机活动</string>
+    <string name="jarvis_phone_explain">只读取安卓本身记录的应用使用历史（哪个应用、从何时到何时）并发送到管家服务器。不读取窗口标题、通知或消息内容。</string>
+    <string name="jarvis_phone_enable">发送</string>
+    <string name="jarvis_phone_url">收集地址</string>
+    <string name="jarvis_phone_token">令牌</string>
+    <string name="jarvis_phone_permission_ok">使用情况访问：已允许</string>
+    <string name="jarvis_phone_permission_missing">使用情况访问：未允许</string>
+    <string name="jarvis_phone_open_permission">打开权限</string>
+    <string name="jarvis_phone_send_now">立即发送</string>
+    <string name="jarvis_phone_close">关闭</string>
+    <string name="jarvis_phone_status_none">尚未发送</string>
+    <string name="jarvis_phone_status_sent">上次发送 %1$s · %2$d 个应用片段</string>
+    <string name="jarvis_phone_status_no_permission">无权限，未发送（%1$s）</string>
+    <string name="jarvis_phone_status_failed">发送失败 %1$s · 代码 %2$s — 下次从同一时段重发</string>
 </resources>

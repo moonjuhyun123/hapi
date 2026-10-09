@@ -26,6 +26,7 @@
 | `kotlin/.../feature/settings/LanguagePrefs.kt` | +2 −1 | 앱 언어 목록에 한국어(`KOREAN`) 추가 |
 | `kotlin/.../feature/settings/SettingsScreen.kt` | +1 | 언어 선택지 이름 「한국어」 |
 | `res/xml/locales_config.xml` | +1 | 안드로이드 「앱별 언어」 설정에 `ko` 등록 |
+| `AndroidManifest.xml` | +4 | (7단계) 사용 기록 접근 권한 `PACKAGE_USAGE_STATS` 한 줄(사용자가 시스템 설정에서 직접 켜는 특수 권한) |
 
 ## 새로 만든 파일
 
@@ -47,6 +48,12 @@
 | `android/app/src/main/kotlin/.../feature/chat/jarvis/HandoffChain.kt` | (6단계) 꼬리표 읽기(`jarvis-out-`, `jarvis-handoff-<앞 세션 id>`), 인계 사슬 따라가기(한 쪽씩 불러오기, 끊기면 멈춤) |
 | `android/app/src/main/kotlin/.../feature/chat/jarvis/OutreachChip.kt` | (6단계) 「⏰ 집사가 먼저 말을 걸었습니다 · HH:MM」 칩. 누르면 원문 펼침 |
 | `android/app/src/test/kotlin/.../feature/chat/jarvis/HandoffChainTest.kt` | (6단계) 꼬리표 접기·숨기기, 사슬 따라가기·끊김·고리·네트워크 실패 JVM 시험 13개 |
+| `android/app/src/main/kotlin/.../feature/jarvis/activity/UsageSpans.kt` | (7단계) 화면 없는 순수 계산: 사용 기록 사건 → 앱 구간·화면 구간(짝 맞추기·앱 안 화면 전환 붙이기·1초 미만 버리기·창 경계로 자르기) |
+| `android/app/src/main/kotlin/.../feature/jarvis/activity/UsageReader.kt` | (7단계) 권한 확인 + `UsageStatsManager.queryEvents` 읽기 + 앱 이름(보이면) |
+| `android/app/src/main/kotlin/.../feature/jarvis/activity/ActivityPrefs.kt` | (7단계) 켜기·주소·토큰·마지막 보낸 끝·상태를 따로 된 DataStore 파일(`jarvis_activity`)에 |
+| `android/app/src/main/kotlin/.../feature/jarvis/activity/PhoneActivityWorker.kt` | (7단계) 보내는 일꾼(WorkManager) + 보낼 본문 만들기 + 예약(앱 열 때·3시간마다) |
+| `android/app/src/main/kotlin/.../feature/jarvis/activity/PhoneActivityDialog.kt` | (7단계) 집사 ⋮ 메뉴 「폰 활동」 창 |
+| `android/app/src/test/kotlin/.../feature/jarvis/activity/UsageSpansTest.kt` | (7단계) 구간 계산·본문 모양 JVM 시험 11개 |
 | `docs/jarvis/X5-코드확인.md` | 0단계 코드 확인 답 |
 | `docs/jarvis/CHANGES.md` | 이 문서 |
 
@@ -120,6 +127,16 @@
      1. 넘김 순간 화면이 새 세션으로 다시 그려집니다. 맨 아래 위치로 돌아가고, 앞 대화가 위에 붙는 데 잠깐(한 쪽 불러오는 시간) 걸립니다.
      2. 지시문이 대기열에 있는 동안(예약 포함)은 대기열 줄에 보이지 않습니다. 서버 몫이라 사용자가 고치거나 취소할 일이 없어서 뺐습니다.
 
+7. **폰 활동 보내기 (7단계, 이 서버에서 직접 — 2026-10-09)**
+   - 배경: 폰의 ActivityWatch 는 서버로 보낼 길이 없다. 폰에 깔리는 우리 것은 이 앱 하나로 한다(주현님 「위젯 하나로 다 하게」). 정본 10장 [새-37].
+   - **읽는 것**: 안드로이드가 원래 모아 두는 앱 사용 기록 중 앱 앞/뒤(`ACTIVITY_RESUMED`·`PAUSED`·`STOPPED`)와 화면 켜짐/꺼짐(`SCREEN_INTERACTIVE`·`NON_INTERACTIVE`), 꺼짐(`DEVICE_SHUTDOWN`)뿐. 창 제목·알림·메시지·화면 내용은 읽지 않는다. 권한은 `PACKAGE_USAGE_STATS` 하나.
+   - **묶기**: 앱 구간 `{start, end, package, label}` · 화면 구간 `{start, end}`. 같은 앱 안 화면 전환(2초 안)은 붙이고, 1초 미만은 버린다. 창이 열릴 때 이미 앞에 있던 앱을 놓치지 않게 1시간 앞부터 읽고 창 경계로 자른다.
+   - **보내기**: 앱 열 때 + 3시간마다(WorkManager, 네트워크 있을 때). 마지막으로 받아들여진 끝부터 지금까지를 한 묶음으로, 1시간보다 촘촘하게는 안 보낸다(「지금 보내기」만 예외). 처음 켜면 하루 전부터.
+   - **보내는 곳은 허브가 아니다**: ⋮ 「폰 활동」 창의 「수집 입구 주소」·「토큰」. `POST <주소>/phone-activity`, `Authorization: Bearer <토큰>`. 실패하면 끝을 안 옮겨서 다음에 같은 구간부터 다시 보낸다(서버는 `device`+`from` 으로 중복을 거른다).
+   - **화면**: 설정 화면이 아니라 집사 ⋮ 메뉴 「폰 활동」 → 창 하나(켜기·주소·토큰·권한 상태·마지막 보냄·「권한 열기」·「지금 보내기」). 원본 설정 화면을 안 건드리려고.
+   - **앱 이름**: 안드로이드 11 부터 다른 앱 정보는 `QUERY_ALL_PACKAGES` 없이는 잘 안 보인다. 권한을 더 늘리지 않으려고 안 물었고, 안 보이면 패키지 이름을 그대로 보낸다(서버가 이름을 붙인다).
+   - 알려진 한계: 토큰은 일반 DataStore 에 둔다(허브 토큰처럼 암호화 저장소가 아님). 이 토큰으로 할 수 있는 건 폰 활동 올리기뿐이다.
+
 ## 새 라이브러리
 
 없습니다.
@@ -131,6 +148,7 @@
 - `./gradlew :app:assembleDebug` — **성공**.
 - `./gradlew :core:protocol:test :core:data:testDebugUnitTest :app:testDebugUnitTest` — **성공**. 실패 0 (protocol 268개, data 241개, app 273개. app 중 새 시험 39개: 진행·권한 21개 + 집사 5개 + 꼬리표·사슬 13개).
 - `./gradlew :app:lintDebug` — **성공** (오류 0, 경고는 원본에 있던 종류뿐).
+- 7단계(이 서버, 2026-10-09): `./gradlew :app:testDebugUnitTest :app:lintDebug` — **성공**. app 시험 284개 실패 0(새 11개: 구간·본문 모양) · 린트 오류 0, 새 경고 1개(「앱 구간 %d개」 문자열에 복수형 권고 — 한국어엔 의미 없어 둠). 빌드 `:app:assembleDebug` 성공.
 - **못 돌린 것**: 기기·에뮬레이터가 없어 Compose 계측 시험(`connectedDebugAndroidTest`)과 실제 화면 확인은 못 했습니다.
 
 ## 남은 영어 (일부러 그대로 둠)

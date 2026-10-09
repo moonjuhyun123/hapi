@@ -34,4 +34,20 @@
     <string name="jarvis_butler_retry">Check again</string>
     <string name="jarvis_butler_title">Butler</string>
     <string name="jarvis_outreach_chip">⏰ The butler spoke first · %1$s</string>
+    <!-- 7단계: 폰 활동 보내기 -->
+    <string name="jarvis_menu_phone_activity">Phone activity</string>
+    <string name="jarvis_phone_title">Send phone activity</string>
+    <string name="jarvis_phone_explain">Reads only the app usage history Android already keeps (which app, from when to when) and sends it to the butler server. Window titles, notifications and messages are never read.</string>
+    <string name="jarvis_phone_enable">Send</string>
+    <string name="jarvis_phone_url">Collection address</string>
+    <string name="jarvis_phone_token">Token</string>
+    <string name="jarvis_phone_permission_ok">Usage access: allowed</string>
+    <string name="jarvis_phone_permission_missing">Usage access: not allowed</string>
+    <string name="jarvis_phone_open_permission">Open permission</string>
+    <string name="jarvis_phone_send_now">Send now</string>
+    <string name="jarvis_phone_close">Close</string>
+    <string name="jarvis_phone_status_none">Never sent yet</string>
+    <string name="jarvis_phone_status_sent">Last sent %1$s · %2$d app spans</string>
+    <string name="jarvis_phone_status_no_permission">Not sent — no permission (%1$s)</string>
+    <string name="jarvis_phone_status_failed">Send failed %1$s · code %2$s — will resend the same window</string>
 </resources>

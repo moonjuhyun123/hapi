@@ -18,6 +18,8 @@ import app.hapi.companion.R
 data class ButlerMenu(
     val onOpenSessions: () -> Unit,
     val onNewSession: () -> Unit,
+    /** Step 7: opens the 「폰 활동」 settings dialog. */
+    val onPhoneActivity: () -> Unit = {},
 )
 
 /** Leading ⋮ entries for butler mode; [onAdvanced] opens the model/permission sheet. */
@@ -32,6 +34,11 @@ internal fun ButlerMenuItems(menu: ButlerMenu, onAdvanced: () -> Unit, close: ()
         text = { Text(stringResource(R.string.jarvis_menu_new_session)) },
         onClick = { close(); menu.onNewSession() },
         modifier = Modifier.testTag("butler-menu-new-session"),
+    )
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.jarvis_menu_phone_activity)) },
+        onClick = { close(); menu.onPhoneActivity() },
+        modifier = Modifier.testTag("butler-menu-phone-activity"),
     )
     DropdownMenuItem(
         text = { Text(stringResource(R.string.jarvis_menu_advanced)) },
