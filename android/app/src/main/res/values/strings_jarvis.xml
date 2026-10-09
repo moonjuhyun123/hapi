@@ -63,4 +63,17 @@
     <string name="jarvis_push_permission">Your butler asks for permission</string>
     <string name="jarvis_channel_butler">Butler</string>
     <string name="jarvis_channel_butler_desc">Replies, questions and permission requests from your butler</string>
+    <string name="jarvis_tab_butler">Butler</string>
+    <string name="jarvis_tab_workout">Workout</string>
+    <string name="jarvis_workout_title">Workout</string>
+    <string name="jarvis_workout_save">Save</string>
+    <string name="jarvis_workout_saved">Saved</string>
+    <string name="jarvis_workout_retry">Retry</string>
+    <string name="jarvis_workout_today">Today\'s log</string>
+    <string name="jarvis_workout_extras">Other</string>
+    <string name="jarvis_workout_note">Note</string>
+    <string name="jarvis_workout_free_hint">Distance · time · count</string>
+    <string name="jarvis_workout_add_set">+ Set</string>
+    <string name="jarvis_workout_kg">kg</string>
+    <string name="jarvis_workout_reps">reps</string>
 </resources>
