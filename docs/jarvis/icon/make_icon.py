@@ -14,6 +14,7 @@ pts = [(x, y) for y in range(0, W, 2) for x in range(0, W, 2) if sum((px[x, y][i
 x0, x1 = min(p[0] for p in pts), max(p[0] for p in pts); y0, y1 = min(p[1] for p in pts), max(p[1] for p in pts)
 cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
 rmax = max(math.hypot(x - cx, y - cy) for x, y in pts)
+HAIR_ALPHA = 0.45                # 상태바 아이콘의 머리카락 불투명도
 R_DP = 32.0                      # 내용 반지름 32dp — 안전원(지름 66dp) 안
 scale_dp = R_DP / rmax           # 원본 1px = ? dp
 print(f'bbox {x0},{y0}-{x1},{y1} center {cx:.0f},{cy:.0f} rmax {rmax:.0f}px → image {W*scale_dp:.1f}dp')
@@ -64,8 +65,13 @@ for d, k in DENS.items():
     layer(k, 'mono').save(f'{res}/mipmap-{d}/jarvis_launcher_monochrome.png', optimize=True)
 
 # 상태바 알림 아이콘(16단계): 단색 실루엣만 쓰인다(안드로이드가 흰색으로 칠함) — 테마 아이콘과 같은 실루엣을 24dp 칸에 꽉 차게
-bbox = MONO.getbbox()
-sil = MONO.crop(bbox)
+# 머리카락은 반투명(상태바에선 회색으로 보인다) — 말풍선 얼굴과 색이 다르게(10-09 주현님 「머리카락은 말풍선이랑 색 다르게」)
+hair = np.asarray(lab) == 128
+hair_soft = np.asarray(Image.fromarray((hair * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(2))) / 255.0
+stat_alpha = mono_alpha * (1 - hair_soft * (1 - HAIR_ALPHA))
+STAT = Image.fromarray((stat_alpha * 255).astype(np.uint8))
+bbox = STAT.getbbox()
+sil = STAT.crop(bbox)
 for d, k in DENS.items():
     C = round(24 * k); inner = round(22 * k)
     w, h = sil.size; f = inner / max(w, h)
