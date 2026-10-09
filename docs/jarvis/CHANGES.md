@@ -54,6 +54,10 @@
 | `android/app/src/main/kotlin/.../feature/jarvis/activity/PhoneActivityWorker.kt` | (7단계) 보내는 일꾼(WorkManager) + 보낼 본문 만들기 + 예약(앱 열 때·3시간마다) |
 | `android/app/src/main/kotlin/.../feature/jarvis/activity/PhoneActivityDialog.kt` | (7단계) 집사 ⋮ 메뉴 「폰 활동」 창 |
 | `android/app/src/test/kotlin/.../feature/jarvis/activity/UsageSpansTest.kt` | (7단계) 구간 계산·본문 모양 JVM 시험 11개 |
+| `android/app/src/main/kotlin/.../feature/jarvis/drive/DriveViewModel.kt` | (9단계) 드라이브 상태: 폴더 들어가기·위로·검색(250ms 늦춰서)·정렬 |
+| `android/app/src/main/kotlin/.../feature/jarvis/drive/DriveScreen.kt` | (9단계) 드라이브 화면 |
+| `android/app/src/main/kotlin/.../feature/jarvis/drive/DriveViewModelHolder.kt` | (9단계) 화면 돌려도 상태 유지 |
+| `android/app/src/test/kotlin/.../feature/jarvis/drive/DriveViewModelTest.kt` | (9단계) JVM 시험 5개 |
 | `docs/jarvis/X5-코드확인.md` | 0단계 코드 확인 답 |
 | `docs/jarvis/CHANGES.md` | 이 문서 |
 
@@ -142,8 +146,15 @@
 8. **방 하나 — 메뉴 정리 (8단계, 이 서버 — 2026-10-09)**
    - ⋮ 메뉴에서 「세션 목록」「새 세션」을 뺐다(주현님 「세션 목록이랑 새 세션 필요없음」). 터미널은 하네스 원래 화면으로 쓰기로 해서(정본 [새-35]) 허브엔 집사만 있다. 집사가 없을 때의 「세션 목록 보기」 비상구는 그대로.
    - 집사 화면에서 「이름 변경」「삭제」도 뺐다(주현님 「이름변경 삭제도 날려버려」) — 앱이 집사를 고정·이름으로 찾으니 집사 화면에서 바꾸면 집사를 잃는다. 일반 세션 화면은 원본 그대로.
-   - 지금 ⋮ = 「폰 활동 · 고급 · 세션 파일 · 스크래치리스트」(+ 꺼진 세션이면 「다시 열기」).
+   - (9단계에서 더 줄임 — 아래.)
    - 「잡담」 두 번째 방을 같은 날 만들었다가 접었다(커밋 `3b70c8f7` → 되돌림). 정본 9장 [새-38].
+
+9. **드라이브 · 메뉴 더 줄임 (9단계, 이 서버 — 2026-10-09)**
+   - 주현님 「스크래치리스트도 · 세션 파일은 이름을 드라이브로 바꾸고 변경사항은 빼, 찾아보기 검색은 하나로 합쳐서 드라이브처럼」·「고급도 빼자」.
+   - 집사 ⋮ = **「폰 활동 · 드라이브」**(+ 꺼진 세션이면 「다시 열기」). 고급(모델·권한·effort)·스크래치리스트·초안 넣기는 집사 화면에서 뺐다 — 모델·권한은 서버가 정한다. 일반 세션 화면은 원본 그대로.
+   - **드라이브**(새 `feature/jarvis/drive/`): 맨 위 검색창 하나 + 경로(드라이브 › jarvis › …) + 폴더 먼저·파일 다음. 폴더를 누르면 들어가고, 뒤로 가기는 검색 지우기 → 한 칸 위로 → 화면 나가기 순. 검색은 세션 루트 전체(허브 `files` 검색 그대로), 결과를 누르면 원본 파일 보기로. 숨김(점) 파일은 안 보인다. 변경사항(git) 탭은 없다.
+   - 원본은 건드린 곳만: `Navigation.kt`(집사 세션의 파일 경로면 드라이브로) · `ChatScreen.kt`(집사면 파일 줄 이름 「드라이브」, 스크래치리스트·초안 넣기 숨김, 아래 칸이 다 숨으면 구분선도 숨김). 허브 API 새것 없음.
+   - 시험: `DriveViewModelTest` 5개(경로·정렬·폴더 들어갔다 나오기·검색과 뒤로·목록 실패). A36 에서 드라이브 열림·폴더 진입·뒤로 확인.
 
 ## 새 라이브러리
 
@@ -158,6 +169,7 @@
 - `./gradlew :app:lintDebug` — **성공** (오류 0, 경고는 원본에 있던 종류뿐).
 - 7단계(이 서버, 2026-10-09): `./gradlew :app:testDebugUnitTest :app:lintDebug` — **성공**. app 시험 284개 실패 0(새 11개: 구간·본문 모양) · 린트 오류 0, 새 경고 1개(「앱 구간 %d개」 문자열에 복수형 권고 — 한국어엔 의미 없어 둠). 빌드 `:app:assembleDebug` 성공.
 - 8단계(이 서버, 2026-10-09): 잡담방 걷어낸 뒤 app 시험 284개 실패 0 · 린트 오류 0. A36 ⋮ = 「폰 활동·고급·세션 파일·스크래치리스트」 확인.
+- 9단계(이 서버, 2026-10-09): app 시험 289개 실패 0(새 5개) · 린트 오류 0.
 - **못 돌린 것**: 기기·에뮬레이터가 없어 Compose 계측 시험(`connectedDebugAndroidTest`)과 실제 화면 확인은 못 했습니다.
 
 ## 남은 영어 (일부러 그대로 둠)

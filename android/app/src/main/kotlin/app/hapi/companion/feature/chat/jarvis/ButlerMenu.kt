@@ -1,7 +1,6 @@
 package app.hapi.companion.feature.chat.jarvis
 
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.testTag
@@ -16,7 +15,8 @@ import app.hapi.companion.R
  * instead. Harness hand-overs are the server's job, so there is no entry. The
  * session list and new-session entries were dropped too (주현님 10-09) — the
  * hub only holds the butler. (A second 「잡담」 room was tried the same day and
- * folded back: 정본 9장 [새-38].)
+ * folded back: 정본 9장 [새-38].) The advanced sheet (model/permission/effort)
+ * and scratchlist were dropped from the butler too — the server picks those.
  */
 data class ButlerMenu(
     /** Header title — 「집사」. */
@@ -25,18 +25,12 @@ data class ButlerMenu(
     val onPhoneActivity: () -> Unit = {},
 )
 
-/** Leading ⋮ entries for butler mode: phone activity and [onAdvanced] (model/permission sheet). */
+/** Leading ⋮ entry for butler mode: phone activity. Files follow as 「드라이브」 (upstream row, relabelled). */
 @Composable
-internal fun ButlerMenuItems(menu: ButlerMenu, onAdvanced: () -> Unit, close: () -> Unit) {
+internal fun ButlerMenuItems(menu: ButlerMenu, close: () -> Unit) {
     DropdownMenuItem(
         text = { Text(stringResource(R.string.jarvis_menu_phone_activity)) },
         onClick = { close(); menu.onPhoneActivity() },
         modifier = Modifier.testTag("butler-menu-phone-activity"),
     )
-    DropdownMenuItem(
-        text = { Text(stringResource(R.string.jarvis_menu_advanced)) },
-        onClick = { close(); onAdvanced() },
-        modifier = Modifier.testTag("butler-menu-advanced"),
-    )
-    HorizontalDivider()
 }

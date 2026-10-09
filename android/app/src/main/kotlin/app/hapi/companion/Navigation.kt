@@ -362,6 +362,19 @@ fun HapiNavigation() {
                     FilesViewModelHolder(hubGraph, sessionId, filesStrings(filesContext))
                 },
             )
+            // Jarvis: the butler's files open as 「드라이브」 (folders + one search, no Changes tab).
+            if (sessionId == app.hapi.companion.feature.jarvis.currentButlerId(hubGraph)) {
+                val drive = viewModel<app.hapi.companion.feature.jarvis.drive.DriveViewModelHolder>(
+                    key = "drive:${hubGraph.hubUrl}:$sessionId",
+                    factory = viewModelFactory { app.hapi.companion.feature.jarvis.drive.DriveViewModelHolder(hubGraph, sessionId) },
+                )
+                app.hapi.companion.feature.jarvis.drive.DriveScreen(
+                    viewModel = drive.viewModel,
+                    onBack = { navController.popBackStack() },
+                    onOpenFile = { path -> navController.navigate(Routes.fileViewer(sessionId, path)) },
+                )
+                return@composable
+            }
             FilesScreen(
                 viewModel = holder.viewModel,
                 onBack = { navController.popBackStack() },

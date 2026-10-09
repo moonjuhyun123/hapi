@@ -300,7 +300,8 @@ internal fun ChatScreen(
                         active = state.header.active,
                         onOpenFiles = onOpenFiles,
                         scratchlistCount = scratchlistCount,
-                        onOpenScratchlist = if (viewModel.scratchlistEnabled) onOpenScratchlist else null,
+                        onOpenScratchlist = if (viewModel.scratchlistEnabled && butlerMenu == null) onOpenScratchlist else null,
+                        filesLabel = if (butlerMenu != null) stringResource(R.string.jarvis_drive_title) else null,
                         // Jarvis: the butler can't be renamed or deleted from its own screen —
                         // the app finds it by its pin and name (주현님 10-09 「이름변경 삭제도 날려버려」).
                         onRename = if (butlerMenu == null) ({ renameDialogOpen = true }) else null,
@@ -308,14 +309,14 @@ internal fun ChatScreen(
                         onDelete = if (butlerMenu == null) ({ deleteDialogOpen = true }) else null,
                         // Draft-level action, relocated from the composer's
                         // own overflow (one less button in the input bar).
-                        onParkDraft = if (viewModel.scratchlistEnabled && composerState.text.isNotBlank()) {
+                        onParkDraft = if (viewModel.scratchlistEnabled && butlerMenu == null && composerState.text.isNotBlank()) {
                             viewModel::parkComposerDraft
                         } else {
                             null
                         },
                         leadingItems = butlerMenu?.let { menu ->
                             { close ->
-                                app.hapi.companion.feature.chat.jarvis.ButlerMenuItems(menu, onAdvanced = { configSheetOpen = true }, close)
+                                app.hapi.companion.feature.chat.jarvis.ButlerMenuItems(menu, close)
                             }
                         },
                     )
@@ -462,6 +463,8 @@ private fun SessionOverflowMenu(
     /** null ⇒ row hidden (Jarvis butler screen). */
     onDelete: (() -> Unit)?,
     onOpenFiles: () -> Unit = {},
+    /** Jarvis: 「드라이브」 on the butler screen; null ⇒ the upstream label. */
+    filesLabel: String? = null,
     /** Entry-count suffix on the scratchlist row. */
     scratchlistCount: Int = 0,
     /** null ⇒ scratchlist row hidden (feature off / tests). */
@@ -478,7 +481,7 @@ private fun SessionOverflowMenu(
     DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
         leadingItems?.invoke { open = false }
         DropdownMenuItem(
-            text = { Text(stringResource(R.string.chat_open_files)) },
+            text = { Text(filesLabel ?: stringResource(R.string.chat_open_files)) },
             leadingIcon = { Icon(FolderGlyph, contentDescription = null) },
             onClick = {
                 open = false
@@ -502,7 +505,8 @@ private fun SessionOverflowMenu(
                 },
             )
         }
-        HorizontalDivider()
+        // Jarvis: no trailing divider when every action row below is hidden (butler, active).
+        if (onRename != null || onParkDraft != null || !active || onDelete != null) HorizontalDivider()
         if (onRename != null) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.sessions_action_rename)) },
