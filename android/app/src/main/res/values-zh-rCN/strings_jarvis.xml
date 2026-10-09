@@ -25,7 +25,6 @@
     <string name="jarvis_question_hide_form">收起输入</string>
     <string name="jarvis_menu_sessions">会话列表</string>
     <string name="jarvis_menu_new_session">新建会话</string>
-    <string name="jarvis_menu_move_harness">迁移到其他代理</string>
     <string name="jarvis_menu_advanced">高级</string>
     <string name="jarvis_butler_loading">正在查找管家…</string>
     <string name="jarvis_butler_none_title">还没有管家</string>
@@ -33,17 +32,6 @@
     <string name="jarvis_butler_none_hint">服务器全局置顶一个会话后，会直接显示在这里。</string>
     <string name="jarvis_butler_open_sessions">打开会话列表</string>
     <string name="jarvis_butler_retry">重新检查</string>
-    <string name="jarvis_move_title">迁移到其他代理</string>
-    <string name="jarvis_move_machine">机器</string>
-    <string name="jarvis_move_folder">文件夹</string>
-    <string name="jarvis_move_harness">代理</string>
-    <string name="jarvis_move_current">正在使用</string>
-    <string name="jarvis_move_unavailable">此机器不可用</string>
-    <string name="jarvis_move_note">对话内容不会迁移：新管家会重新开始，模型由服务器决定。</string>
-    <string name="jarvis_move_confirm">迁移</string>
-    <string name="jarvis_move_cancel">取消</string>
-    <string name="jarvis_move_close">关闭</string>
-    <string name="jarvis_move_missing_location">该管家没有记录机器或文件夹，无法迁移。</string>
-    <string name="jarvis_move_pin_failed">新会话已启动，但无法置顶。管家保持不变。</string>
-    <string name="jarvis_move_unpin_failed">已迁移，但原管家仍处于置顶状态。请在会话列表中取消置顶。</string>
+    <string name="jarvis_butler_title">管家</string>
+    <string name="jarvis_outreach_chip">⏰ 管家主动发来消息 · %1$s</string>
 </resources>

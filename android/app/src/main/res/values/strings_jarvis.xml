@@ -25,7 +25,6 @@
     <string name="jarvis_question_hide_form">Hide typed answer</string>
     <string name="jarvis_menu_sessions">Session list</string>
     <string name="jarvis_menu_new_session">New session</string>
-    <string name="jarvis_menu_move_harness">Move to another harness</string>
     <string name="jarvis_menu_advanced">Advanced</string>
     <string name="jarvis_butler_loading">Finding the butler…</string>
     <string name="jarvis_butler_none_title">No butler yet</string>
@@ -33,17 +32,6 @@
     <string name="jarvis_butler_none_hint">When the server pins a session globally, it opens here.</string>
     <string name="jarvis_butler_open_sessions">Open session list</string>
     <string name="jarvis_butler_retry">Check again</string>
-    <string name="jarvis_move_title">Move to another harness</string>
-    <string name="jarvis_move_machine">Machine</string>
-    <string name="jarvis_move_folder">Folder</string>
-    <string name="jarvis_move_harness">Harness</string>
-    <string name="jarvis_move_current">in use</string>
-    <string name="jarvis_move_unavailable">not on this machine</string>
-    <string name="jarvis_move_note">The conversation does not move: the new butler starts fresh. The server picks the model.</string>
-    <string name="jarvis_move_confirm">Move</string>
-    <string name="jarvis_move_cancel">Cancel</string>
-    <string name="jarvis_move_close">Close</string>
-    <string name="jarvis_move_missing_location">This butler has no machine or folder recorded, so it cannot be moved.</string>
-    <string name="jarvis_move_pin_failed">The new session started but could not be pinned. The butler is unchanged.</string>
-    <string name="jarvis_move_unpin_failed">Moved, but the old butler is still pinned. Unpin it from the session list.</string>
+    <string name="jarvis_butler_title">Butler</string>
+    <string name="jarvis_outreach_chip">⏰ The butler spoke first · %1$s</string>
 </resources>

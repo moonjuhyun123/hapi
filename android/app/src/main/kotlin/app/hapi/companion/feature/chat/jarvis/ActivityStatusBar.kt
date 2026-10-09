@@ -56,7 +56,9 @@ internal fun ActivityStatusBar(
     val resources = LocalContext.current.resources
     val toolId = snapshot.toolId
     val toolLine = remember(snapshot.toolCall, basePath, resources) {
-        snapshot.toolCall?.let { toolSummaryPresentation(it, basePath, resources) }
+        snapshot.toolCall?.let { call ->
+            toolSummaryPresentation(call, basePath, resources).let { it.copy(title = neutralToolTitle(it.title, call.name)) }
+        }
     }
 
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -143,7 +145,7 @@ internal fun ActivityStatusBar(
                 }
                 toolLine?.let { line ->
                     Text(
-                        text = listOfNotNull(line.icon, line.title, line.subtitle).joinToString(" "),
+                        text = listOfNotNull(line.icon, line.title.ifEmpty { null }, line.subtitle).joinToString(" "),
                         style = HapiTypography.caption,
                         color = MaterialTheme.hapi.hint,
                         maxLines = 1,

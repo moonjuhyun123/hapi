@@ -150,6 +150,17 @@ class JarvisChatModelTest {
         assertEquals("t", snapshot.toolId)
     }
 
+    @Test fun stripNeverNamesTheHarness() {
+        // Semantic titles pass through untouched, even if they mention a brand.
+        assertEquals("Apply changes", neutralToolTitle("Apply changes", "CodexPatch"))
+        assertEquals("codex exec ls", neutralToolTitle("codex exec ls", "Bash"))
+        // Raw fallback titles lose the leading brand.
+        assertEquals("Foo", neutralToolTitle("CodexFoo", "CodexFoo"))
+        assertEquals("web_lookup", neutralToolTitle("Claude_web_lookup", "Claude_web_lookup"))
+        assertEquals("", neutralToolTitle("Codex", "Codex"))
+        assertEquals("Codecheck", neutralToolTitle("Codecheck", "Codecheck"))
+    }
+
     @Test fun elapsedNeverNegative() {
         assertEquals(0L, elapsedSeconds(5_000, 1_000))
         assertNull(elapsedSeconds(null, 1_000))

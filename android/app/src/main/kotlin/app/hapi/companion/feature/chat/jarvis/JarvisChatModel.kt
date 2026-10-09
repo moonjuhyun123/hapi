@@ -103,6 +103,19 @@ fun elapsedSeconds(fromMs: Long?, toMs: Long?): Long? {
     return ((toMs - fromMs) / 1000).coerceAtLeast(0)
 }
 
+/** Harness brand at the start of a raw tool name (`CodexPatch`, `Claude_x`). */
+private val HARNESS_TOOL_PREFIX = Regex("^(Codex|Claude|Gemini|Cursor|OpenCode|Copilot)(?=[A-Z_\\s]|$)")
+
+/**
+ * The strip never names the harness. Semantic titles pass through; only the
+ * fallback (title == raw tool name) loses a leading harness brand. Empty when
+ * nothing but the brand remains.
+ */
+fun neutralToolTitle(title: String, toolName: String): String {
+    if (title != toolName) return title
+    return toolName.replace(HARNESS_TOOL_PREFIX, "").trim('_', ' ')
+}
+
 // ---------------------------------------------------------- permissions --
 
 /** Coarse "what does this request want to do" class, for the header line. */

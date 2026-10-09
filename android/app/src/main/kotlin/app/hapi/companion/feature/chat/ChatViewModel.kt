@@ -373,6 +373,8 @@ class ChatViewModel(
     private var transcriptVisible = true
     internal val inspection = ChatInspectionState()
     private val transcriptProjection = TranscriptProjection()
+    /** Jarvis: sessions this one was handed over from, stitched above its start. */
+    private val handoffChain = app.hapi.companion.feature.chat.jarvis.HandoffChain(sessionId, api)
     val reconnecting: StateFlow<Boolean> = sseEngine.reconnecting(subscriptionKey)
         .stateIn(scope, SharingStarted.Eagerly, false)
 
@@ -461,6 +463,7 @@ class ChatViewModel(
         val machines: List<Machine>,
         val detailLoadFailed: Boolean,
         val permissionOverrides: Map<String, PermissionRowOverride>,
+        val chain: app.hapi.companion.feature.chat.jarvis.HandoffChainState,
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -474,6 +477,7 @@ class ChatViewModel(
                 machineStore.machines,
                 detailLoadFailed,
                 permissionOverrides,
+                handoffChain.state,
             ) { values: Array<Any?> -> pipelineInputs(values) }
         }
         // The web samples pipeline runs through React batching; here: emit the
@@ -579,6 +583,9 @@ class ChatViewModel(
             historyObserver = uiScope.launch {
                 store.state.collect { window ->
                     mutableHistoryPaging.value = mutableHistoryPaging.value.refreshAvailability(window.hasMore)
+                    if (!window.hasMore && window.epoch != null) {
+                        handoffChain.anchor(app.hapi.companion.feature.chat.jarvis.firstUserLocalIdOfRows(window.messages))
+                    }
                     val epoch = window.epoch
                     if (epoch != null) {
                         if (lastHistoryEpoch != null && lastHistoryEpoch != epoch) {
@@ -734,6 +741,13 @@ class ChatViewModel(
     private fun pumpHistory() {
         val store = windowStore.value ?: return
         val window = store.state.value
+        if (!window.hasMore) {
+            // Jarvis: past this session's start, keep reading the hand-over chain.
+            if (started && transcriptVisible && historyDemand && !mutableJumpingLatest.value && !window.isSyncingTail) {
+                handoffChain.requestMore(uiScope, workerContext, ::scheduleHistoryPump)
+            }
+            return
+        }
         if (!started || !transcriptVisible || mutableJumpingLatest.value || !historyDemand || !window.hasMore ||
             window.isSyncingTail || window.isLoadingMore || olderJob != null ||
             mutableHistoryPaging.value.phase != ChatHistoryPagingState.Phase.Idle) return
@@ -1349,7 +1363,7 @@ class ChatViewModel(
         opPending: Boolean,
         thinking: Boolean,
     ): List<QueuedRowUi> {
-        val queued = window.messages.filter { it.isQueuedForInvocation }
+        val queued = window.messages.filter { it.isQueuedForInvocation && !app.hapi.companion.feature.chat.jarvis.isServerTaggedLocalId(it.localId) }
         // Web `sortQueuedMessages`: immediate first (submission order), then
         // scheduled by fire time.
         val sorted = queued.sortedWith(
@@ -1722,6 +1736,7 @@ class ChatViewModel(
             machines = values[3] as List<Machine>,
             detailLoadFailed = values[4] as Boolean,
             permissionOverrides = values[5] as Map<String, PermissionRowOverride>,
+            chain = values[6] as app.hapi.companion.feature.chat.jarvis.HandoffChainState,
         )
     }
 
@@ -1748,7 +1763,12 @@ class ChatViewModel(
 
         // Queued-not-yet-invoked rows belong to the composer bar, not the
         // thread — shared predicate with the window store, like the web.
-        val visibleMessages = window.messages.filter { !it.isQueuedForInvocation }
+        // Jarvis: once the session's start is on screen, hand-over ancestors
+        // go above it as one conversation (read-only rows).
+        val ancestors = if (window.hasMore) emptyList() else inputs.chain.messages
+        val hasMore = window.hasMore ||
+            inputs.chain.mayHaveMore { app.hapi.companion.feature.chat.jarvis.firstUserLocalIdOfRows(window.messages) }
+        val visibleMessages = ancestors + window.messages.filter { !it.isQueuedForInvocation }
 
         val normalized = ArrayList<NormalizedMessage>(visibleMessages.size)
         val seen = HashSet<String>(visibleMessages.size * 2)
@@ -1780,7 +1800,7 @@ class ChatViewModel(
         val reduced = reduceChatBlocks(normalized, agentState)
         val visibleBlocks = buildVisibleChatBlocks(
             reduced.blocks,
-            ToolGroupingOptions(hasMoreMessages = window.hasMore, previousGroups = previousGroups),
+            ToolGroupingOptions(hasMoreMessages = hasMore, previousGroups = previousGroups),
         )
         previousGroups = visibleBlocks.filterIsInstance<ToolGroupBlock>()
         inspection.update(visibleBlocks, window.epoch)
@@ -1809,11 +1829,11 @@ class ChatViewModel(
             activity = app.hapi.companion.feature.chat.jarvis.deriveActivity(visibleBlocks, header.thinking),
             flavor = inputs.detail?.metadata?.flavor ?: inputs.summary?.metadata?.flavor,
             basePath = inputs.detail?.metadata?.path ?: inputs.summary?.metadata?.path,
-            blocks = transcriptProjection.project(visibleBlocks),
+            blocks = transcriptProjection.project(visibleBlocks).filterNot { app.hapi.companion.feature.chat.jarvis.isHiddenTranscriptBlock(it) },
             processSteps = visibleBlocks.filterIsInstance<ToolCallBlock>().filter(::opensToolProcess)
                 .associate { it.id to it.children.size },
             permissionOverrides = inputs.permissionOverrides,
-            hasMore = window.hasMore,
+            hasMore = hasMore,
             isLoadingOlder = window.isLoadingMore,
             isSyncingTail = window.isSyncingTail,
             isInitialLoading = isEmpty && !syncSettled && window.warning == null,

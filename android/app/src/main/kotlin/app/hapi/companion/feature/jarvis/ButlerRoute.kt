@@ -2,20 +2,14 @@ package app.hapi.companion.feature.jarvis
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,15 +22,12 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -57,12 +48,7 @@ import app.hapi.companion.feature.chat.ChatHost
 import app.hapi.companion.feature.chat.ChatMedia
 import app.hapi.companion.feature.chat.jarvis.ButlerMenu
 import app.hapi.data.store.SessionListStore
-import app.hapi.protocol.catalog.Flavors
-import app.hapi.protocol.wire.SessionSummary
-import app.hapi.protocol.wire.SpawnResponse
-import app.hapi.protocol.wire.SpawnSessionRequest
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
 
 /** First list load for the butler screen. */
 private enum class ButlerLoad { Loading, Loaded, Failed }
@@ -81,12 +67,21 @@ internal class ButlerChats : ViewModel() {
     /** The live butler chat for [key], if one is shown (scratchlist "send to composer"). */
     fun existing(key: String): ChatViewModelHolder? = holders[key]
 
-    /** The butler changed: close every other chat (drafts persist in their own store). */
+    /**
+     * The butler changed (e.g. the server handed it to another harness):
+     * close every other chat and carry an unsent draft into the new one, so
+     * the switch does not eat what was being typed.
+     */
     fun retainOnly(key: String?) {
-        stores.keys.filter { it != key }.forEach { stale ->
-            holders.remove(stale)
+        val hub = key?.substringBeforeLast(':')
+        val carried = stores.keys.filter { it != key }.mapNotNull { stale ->
+            val draft = holders.remove(stale)?.viewModel?.composer?.value?.text
             stores.remove(stale)?.clear()
+            // Same hub only: a hub switch must not move text between hubs.
+            draft?.takeIf { it.isNotBlank() && stale.substringBeforeLast(':') == hub }
         }
+        val target = key?.let(holders::get) ?: return
+        carried.forEach(target.viewModel::insertComposerText)
     }
 
     override fun onCleared() {
@@ -129,23 +124,21 @@ internal fun ButlerRoute(graph: AppGraph, hubGraph: HubGraph, navController: Nav
         }
     }
 
-    // A move or a resume/reopen can hand the butler to a new id before the
-    // list says so (the old row is unpinned optimistically first).
+    // A resume/reopen can hand the butler to a new id before the list says so.
+    // (Harness hand-overs are the server's: it re-pins and the list follows.)
     var superseded by remember(hubGraph) { mutableStateOf<Pair<String, String>?>(null) }
     val resolved = remember(sessions) { resolveButler(sessions) }
-    val butlerId = butlerIdWithHandoff(resolved?.id, superseded)
+    val butlerId = butlerIdWithPendingSwitch(resolved?.id, superseded)
     LaunchedEffect(resolved?.id) {
         // The list caught up (or moved on to another butler): drop the hand-off.
         if (superseded != null && resolved != null && resolved.id != superseded?.first) superseded = null
     }
     LaunchedEffect(butlerId) { chats.retainOnly(butlerId?.let { butlerChatKey(hubGraph, it) }) }
 
-    var moveOpen by rememberSaveable { mutableStateOf(false) }
     val menu = remember(navController) {
         ButlerMenu(
             onOpenSessions = { navController.navigate(Routes.HOME) },
             onNewSession = { navController.navigate(Routes.newSession()) },
-            onMoveHarness = { moveOpen = true },
         )
     }
 
@@ -162,21 +155,6 @@ internal fun ButlerRoute(graph: AppGraph, hubGraph: HubGraph, navController: Nav
             failed = load == ButlerLoad.Failed,
             onOpenSessions = { navController.navigate(Routes.HOME) },
             onRetry = { refreshToken += 1 },
-        )
-    }
-
-    val butler = sessions.firstOrNull { it.id == butlerId }
-    LaunchedEffect(butler == null) { if (butler == null) moveOpen = false }
-    if (moveOpen && butler != null) {
-        ButlerMoveDialog(
-            hubGraph = hubGraph,
-            butler = butler,
-            onDismiss = { moveOpen = false },
-            onMoved = { newId ->
-                moveOpen = false
-                superseded = butler.id to newId
-                store.scheduleRefresh()
-            },
         )
     }
 }
@@ -274,142 +252,4 @@ private fun ButlerEmptyContent(failed: Boolean, onOpenSessions: () -> Unit, onRe
         }
         TextButton(onClick = onRetry) { Text(stringResource(R.string.jarvis_butler_retry)) }
     }
-}
-
-/** Production [ButlerGateway]: spawn via the API, pin through the store (optimistic list update). */
-private class HubButlerGateway(private val hubGraph: HubGraph) : ButlerGateway {
-    override suspend fun spawn(machineId: String, request: SpawnSessionRequest): SpawnResponse =
-        hubGraph.session.api.spawnSession(machineId, request)
-
-    override suspend fun setPinMode(sessionId: String, mode: String) =
-        hubGraph.sessionStore.setPinMode(sessionId, mode)
-}
-
-/**
- * "Move to another harness": machine and folder are the butler's (shown, not
- * editable); only the harness is chosen. No model choice — the server decides.
- */
-@Composable
-private fun ButlerMoveDialog(
-    hubGraph: HubGraph,
-    butler: SessionSummary,
-    onDismiss: () -> Unit,
-    onMoved: (String) -> Unit,
-) {
-    val scope = rememberCoroutineScope()
-    val machines by hubGraph.machineStore.machines.collectAsState()
-    val machineId = butler.metadata?.machineId
-    val machineLabel = machines.firstOrNull { it.id == machineId }?.metadata
-        ?.let { it.displayName?.takeIf(String::isNotBlank) ?: it.host } ?: machineId?.take(8) ?: "—"
-    val current = butler.metadata?.flavor
-    var choice by rememberSaveable(butler.id) { mutableStateOf(BUTLER_HARNESSES.firstOrNull { it != current }) }
-    var busy by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var finishedWithWarning by remember { mutableStateOf(false) }
-    var unavailable by remember(machineId) { mutableStateOf(emptySet<String>()) }
-    val context = LocalContext.current
-
-    LaunchedEffect(machineId) {
-        if (machineId == null) return@LaunchedEffect
-        // Advisory only: if the check fails the spawn reports the problem.
-        unavailable = runCatching { hubGraph.session.api.getMachineAgentAvailability(machineId) }.getOrNull()
-            ?.agents?.filter { !it.available }?.map { it.agent }?.toSet().orEmpty()
-    }
-
-    AlertDialog(
-        onDismissRequest = { if (!busy) onDismiss() },
-        title = { Text(stringResource(R.string.jarvis_move_title)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                LabeledValue(stringResource(R.string.jarvis_move_machine), machineLabel)
-                LabeledValue(stringResource(R.string.jarvis_move_folder), butler.metadata?.path ?: "—")
-                Text(stringResource(R.string.jarvis_move_harness), style = MaterialTheme.typography.labelLarge)
-                Column(Modifier.selectableGroup()) {
-                    BUTLER_HARNESSES.forEach { harness ->
-                        val enabled = !busy && !finishedWithWarning && harness != current && harness !in unavailable
-                        val note = when {
-                            harness == current -> stringResource(R.string.jarvis_move_current)
-                            harness in unavailable -> stringResource(R.string.jarvis_move_unavailable)
-                            else -> null
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                                .selectable(selected = choice == harness, enabled = enabled, role = Role.RadioButton) { choice = harness }
-                                .testTag("butler-move-$harness"),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            RadioButton(selected = choice == harness, onClick = null, enabled = enabled)
-                            Text(
-                                listOfNotNull(Flavors.label(harness), note?.let { "($it)" }).joinToString(" "),
-                                modifier = Modifier.padding(start = 8.dp),
-                            )
-                        }
-                    }
-                }
-                Text(
-                    stringResource(R.string.jarvis_move_note),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
-            }
-        },
-        confirmButton = {
-            if (finishedWithWarning) {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.jarvis_move_close)) }
-            } else {
-                TextButton(
-                    enabled = !busy && choice != null && choice != current && choice !in unavailable,
-                    onClick = {
-                        val harness = choice ?: return@TextButton
-                        busy = true
-                        error = null
-                        scope.launch {
-                            val result = ButlerMover(HubButlerGateway(hubGraph)).move(butler, harness)
-                            busy = false
-                            when (result) {
-                                is MoveResult.Moved -> onMoved(result.newSessionId)
-                                is MoveResult.UnpinOldFailed -> {
-                                    error = context.getString(R.string.jarvis_move_unpin_failed)
-                                    finishedWithWarning = true
-                                    hubGraph.sessionStore.scheduleRefresh()
-                                }
-                                else -> error = moveErrorText(context, result)
-                            }
-                        }
-                    },
-                    modifier = Modifier.testTag("butler-move-confirm"),
-                ) {
-                    if (busy) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                    else Text(stringResource(R.string.jarvis_move_confirm))
-                }
-            }
-        },
-        dismissButton = {
-            if (!finishedWithWarning) {
-                TextButton(onClick = onDismiss, enabled = !busy) { Text(stringResource(R.string.jarvis_move_cancel)) }
-            }
-        },
-    )
-}
-
-@Composable
-private fun LabeledValue(label: String, value: String) {
-    Column {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, style = MaterialTheme.typography.bodyMedium)
-    }
-}
-
-private fun moveErrorText(context: android.content.Context, result: MoveResult): String = when (result) {
-    MoveResult.MissingLocation -> context.getString(R.string.jarvis_move_missing_location)
-    is MoveResult.PinFailed -> context.getString(R.string.jarvis_move_pin_failed)
-    is MoveResult.SpawnFailed -> when (result.code) {
-        "agent_unavailable" -> context.getString(R.string.new_session_error_selected_agent_unavailable)
-        "runner_upgrade_required" -> context.getString(R.string.new_session_error_runner_upgrade_required)
-        "outside_workspace_roots" -> context.getString(R.string.new_session_error_directory_outside_workspace_roots)
-        else -> result.message ?: context.getString(R.string.new_session_error_create)
-    }
-    is MoveResult.UnpinOldFailed -> context.getString(R.string.jarvis_move_unpin_failed)
-    is MoveResult.Moved -> ""
 }

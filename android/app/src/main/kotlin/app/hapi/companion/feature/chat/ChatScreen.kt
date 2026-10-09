@@ -282,7 +282,12 @@ internal fun ChatScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.chat_back))
                     }
                 },
-                title = { ChatTitle(state.header, reconnecting, viewModel::retry) },
+                title = {
+                    // Jarvis: the butler keeps one name; no harness/model/machine line.
+                    val header = if (butlerMenu == null) state.header
+                        else state.header.copy(title = stringResource(R.string.jarvis_butler_title), subtitle = null)
+                    ChatTitle(header, reconnecting, viewModel::retry)
+                },
                 actions = {
                     // Two icons max (device feedback: four icons squeezed the
                     // title out) — gear for the frequent config switches,

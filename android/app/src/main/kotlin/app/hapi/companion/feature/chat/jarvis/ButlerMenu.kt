@@ -12,13 +12,12 @@ import app.hapi.companion.R
 /**
  * Butler-mode chrome for the chat screen (Jarvis fork). When a chat is shown
  * as the butler, the screen drops its back arrow and settings gear; session
- * list, new session, harness move and the advanced settings sheet move into
- * the ⋮ menu instead.
+ * list, new session and the advanced settings sheet move into the ⋮ menu
+ * instead. Harness hand-overs are the server's job, so there is no entry.
  */
 data class ButlerMenu(
     val onOpenSessions: () -> Unit,
     val onNewSession: () -> Unit,
-    val onMoveHarness: () -> Unit,
 )
 
 /** Leading ⋮ entries for butler mode; [onAdvanced] opens the model/permission sheet. */
@@ -33,11 +32,6 @@ internal fun ButlerMenuItems(menu: ButlerMenu, onAdvanced: () -> Unit, close: ()
         text = { Text(stringResource(R.string.jarvis_menu_new_session)) },
         onClick = { close(); menu.onNewSession() },
         modifier = Modifier.testTag("butler-menu-new-session"),
-    )
-    DropdownMenuItem(
-        text = { Text(stringResource(R.string.jarvis_menu_move_harness)) },
-        onClick = { close(); menu.onMoveHarness() },
-        modifier = Modifier.testTag("butler-menu-move"),
     )
     DropdownMenuItem(
         text = { Text(stringResource(R.string.jarvis_menu_advanced)) },
