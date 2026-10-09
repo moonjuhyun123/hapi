@@ -35,7 +35,6 @@ import app.hapi.companion.feature.chat.LocalChatInspection
 import app.hapi.companion.feature.chat.toolSummaryPresentation
 import app.hapi.companion.ui.theme.HapiTypography
 import app.hapi.companion.ui.theme.hapi
-import app.hapi.protocol.chat.VisibleChatBlock
 import kotlinx.coroutines.delay
 
 /**
@@ -46,18 +45,18 @@ import kotlinx.coroutines.delay
  */
 @Composable
 internal fun ActivityStatusBar(
-    blocks: List<VisibleChatBlock>,
-    thinking: Boolean,
+    /** From [deriveActivity] over the UNPROJECTED blocks (see ChatViewModel). */
+    snapshot: ActivitySnapshot?,
     basePath: String?,
     modifier: Modifier = Modifier,
 ) {
-    val snapshot = remember(blocks, thinking) { deriveActivity(blocks, thinking) } ?: return
+    snapshot ?: return
     val live = snapshot.phase != ActivityPhase.Done
     val inspection = LocalChatInspection.current
     val resources = LocalContext.current.resources
-    val tool = snapshot.tool
-    val toolLine = remember(tool?.tool, basePath, resources) {
-        tool?.let { toolSummaryPresentation(it.tool, basePath, resources) }
+    val toolId = snapshot.toolId
+    val toolLine = remember(snapshot.toolCall, basePath, resources) {
+        snapshot.toolCall?.let { toolSummaryPresentation(it, basePath, resources) }
     }
 
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -106,8 +105,8 @@ internal fun ActivityStatusBar(
         Row(
             modifier = Modifier
                 .then(
-                    if (tool != null && inspection != null) {
-                        Modifier.clickable(onClickLabel = openLabel) { inspection.openTool(tool.id) }
+                    if (toolId != null && inspection != null) {
+                        Modifier.clickable(onClickLabel = openLabel) { inspection.openTool(toolId) }
                     } else {
                         Modifier
                     },
@@ -152,7 +151,7 @@ internal fun ActivityStatusBar(
                     )
                 }
             }
-            if (tool != null && inspection != null) Text("›", color = MaterialTheme.hapi.hint)
+            if (toolId != null && inspection != null) Text("›", color = MaterialTheme.hapi.hint)
         }
     }
 }

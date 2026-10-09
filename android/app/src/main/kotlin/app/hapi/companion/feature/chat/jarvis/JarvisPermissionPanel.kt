@@ -216,8 +216,8 @@ private fun JarvisPermission(
 
 /**
  * Deny | Approve, spaced apart. Approve arms on the first tap ("tap again to
- * approve") and only acts on the second; it also ignores taps for a moment
- * after the card appears. Session-wide grants stay behind "More options".
+ * approve") and only acts on the second; both ignore taps for a moment after
+ * the card appears. Session-wide grants stay behind "More options".
  */
 @Composable
 internal fun JarvisApprovalButtons(
@@ -260,7 +260,8 @@ internal fun JarvisApprovalButtons(
         ) {
             OutlinedButton(
                 onClick = { onAction(requestId, if (codex) PermissionAction.Abort else PermissionAction.Deny) },
-                enabled = !resolving,
+                // Denying/aborting is a decision too: same stray-tap guard as Approve.
+                enabled = ready && !resolving,
                 modifier = Modifier.weight(1f).heightIn(min = 52.dp).testTag("jarvis-perm-deny"),
             ) {
                 Text(

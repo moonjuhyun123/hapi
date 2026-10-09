@@ -23,4 +23,27 @@
     <string name="jarvis_perm_more">다른 선택</string>
     <string name="jarvis_question_type_answer">직접 입력하기</string>
     <string name="jarvis_question_hide_form">입력 닫기</string>
+    <string name="jarvis_menu_sessions">세션 목록</string>
+    <string name="jarvis_menu_new_session">새 세션</string>
+    <string name="jarvis_menu_move_harness">다른 하네스로 옮기기</string>
+    <string name="jarvis_menu_advanced">고급</string>
+    <string name="jarvis_butler_loading">집사를 찾는 중…</string>
+    <string name="jarvis_butler_none_title">집사가 아직 없습니다</string>
+    <string name="jarvis_butler_load_failed">허브에 연결하지 못했습니다</string>
+    <string name="jarvis_butler_none_hint">서버가 세션 하나를 전역 고정하면 여기에 바로 뜹니다.</string>
+    <string name="jarvis_butler_open_sessions">세션 목록 보기</string>
+    <string name="jarvis_butler_retry">다시 확인</string>
+    <string name="jarvis_move_title">다른 하네스로 옮기기</string>
+    <string name="jarvis_move_machine">머신</string>
+    <string name="jarvis_move_folder">폴더</string>
+    <string name="jarvis_move_harness">하네스</string>
+    <string name="jarvis_move_current">지금 쓰는 중</string>
+    <string name="jarvis_move_unavailable">이 머신에 없음</string>
+    <string name="jarvis_move_note">대화 내용은 넘어가지 않습니다. 새 집사는 처음부터 시작하고, 모델은 서버가 정합니다.</string>
+    <string name="jarvis_move_confirm">옮기기</string>
+    <string name="jarvis_move_cancel">취소</string>
+    <string name="jarvis_move_close">닫기</string>
+    <string name="jarvis_move_missing_location">이 집사에는 머신·폴더 정보가 없어 옮길 수 없습니다.</string>
+    <string name="jarvis_move_pin_failed">새 세션은 시작됐지만 고정하지 못했습니다. 집사는 그대로입니다.</string>
+    <string name="jarvis_move_unpin_failed">옮겼지만 원래 집사의 고정이 남아 있습니다. 세션 목록에서 고정을 풀어 주세요.</string>
 </resources>

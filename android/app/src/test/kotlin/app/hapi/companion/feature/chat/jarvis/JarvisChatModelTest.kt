@@ -63,7 +63,7 @@ class JarvisChatModelTest {
         val blocks = listOf(user("u", 1), tool("t1", 2), text("a", 3), tool("t2", 4, state = ToolState.RUNNING))
         val snapshot = deriveActivity(blocks, thinking = true)!!
         assertEquals(ActivityPhase.UsingTool, snapshot.phase)
-        assertEquals("t2", snapshot.tool?.id)
+        assertEquals("t2", snapshot.toolId)
         assertEquals(2, snapshot.toolCalls)
     }
 
@@ -93,7 +93,7 @@ class JarvisChatModelTest {
         val blocks = listOf(user("u", 1), tool("t", 2, state = ToolState.PENDING, permission = "pending"))
         val snapshot = deriveActivity(blocks, thinking = false)!!
         assertEquals(ActivityPhase.AwaitingApproval, snapshot.phase)
-        assertEquals("t", snapshot.tool?.id)
+        assertEquals("t", snapshot.toolId)
     }
 
     @Test fun pendingApprovalInsideSubagentIsFound() {
@@ -101,7 +101,7 @@ class JarvisChatModelTest {
         val parent = tool("task", 2, name = "Task", state = ToolState.RUNNING, input = """{"prompt":"x"}""", children = listOf(child))
         val snapshot = deriveActivity(listOf(user("u", 1), parent), thinking = true)!!
         assertEquals(ActivityPhase.AwaitingApproval, snapshot.phase)
-        assertEquals("child", snapshot.tool?.id)
+        assertEquals("child", snapshot.toolId)
     }
 
     @Test fun toolGroupsCountEveryTool() {
@@ -113,9 +113,41 @@ class JarvisChatModelTest {
         assertTrue(grouped.single() is ToolGroupBlock)
         val snapshot = deriveActivity(listOf(user("u", 1)) + grouped, thinking = true)!!
         assertEquals(ActivityPhase.UsingTool, snapshot.phase)
-        assertEquals("r2", snapshot.tool?.id)
+        assertEquals("r2", snapshot.toolId)
         assertEquals(2, snapshot.toolCalls)
         assertEquals(3L, snapshot.lastActivityAt)
+    }
+
+    @Test fun transcriptProjectionHidesWhatTheStripNeeds() {
+        // ChatViewModel must feed deriveActivity the UNPROJECTED blocks: the
+        // transcript projection strips group members and sub-agent children.
+        val tools = listOf(
+            tool("r1", 2, name = "Read", input = """{"file_path":"a.kt"}"""),
+            tool("r2", 3, name = "Read", input = """{"file_path":"b.kt"}""", state = ToolState.RUNNING),
+        )
+        val child = tool("child", 5, name = "Edit", input = """{"file_path":"c.kt"}""", permission = "pending")
+        val task = tool("task", 4, name = "Task", state = ToolState.RUNNING, input = """{"prompt":"x"}""", children = listOf(child))
+        val grouped = listOf<VisibleChatBlock>(user("u", 1)) +
+            buildVisibleChatBlocks(tools, ToolGroupingOptions(hasMoreMessages = false))
+        val projection = app.hapi.companion.feature.chat.TranscriptProjection()
+
+        val projectedGroup = projection.project(grouped)
+        assertTrue((projectedGroup.last() as ToolGroupBlock).tools.isEmpty())
+        assertEquals(ActivityPhase.Thinking, deriveActivity(projectedGroup, thinking = true)!!.phase)
+        assertEquals(ActivityPhase.UsingTool, deriveActivity(grouped, thinking = true)!!.phase)
+
+        val withTask = listOf(user("u", 1), task)
+        assertEquals(ActivityPhase.UsingTool, deriveActivity(projection.project(withTask), thinking = true)!!.phase)
+        assertEquals(ActivityPhase.AwaitingApproval, deriveActivity(withTask, thinking = true)!!.phase)
+    }
+
+    @Test fun snapshotCapturesTheToolCallImmutably() {
+        val running = tool("t", 2, state = ToolState.RUNNING)
+        val snapshot = deriveActivity(listOf(user("u", 1), running), thinking = true)!!
+        val captured = snapshot.toolCall
+        running.tool = running.tool.copy(state = ToolState.COMPLETED)
+        assertEquals(ToolState.RUNNING, captured?.state)
+        assertEquals("t", snapshot.toolId)
     }
 
     @Test fun elapsedNeverNegative() {

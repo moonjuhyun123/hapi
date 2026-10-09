@@ -110,6 +110,8 @@ internal fun ChatScreen(
     onOpenScratchlist: (() -> Unit)? = null,
     transcriptList: androidx.compose.foundation.lazy.LazyListState = androidx.compose.foundation.lazy.rememberLazyListState(),
     readingState: TranscriptReadingState = rememberTranscriptReadingState(viewModel.sessionId),
+    /** Jarvis: non-null ⇒ butler mode (no back arrow / gear; menu carries them). */
+    butlerMenu: app.hapi.companion.feature.chat.jarvis.ButlerMenu? = null,
 ) {
     val state by viewModel.uiState.collectAsState()
     val reconnecting by viewModel.reconnecting.collectAsState()
@@ -276,7 +278,7 @@ internal fun ChatScreen(
             TopAppBar(
                 expandedHeight = toolbarHeight,
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    if (butlerMenu == null) IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.chat_back))
                     }
                 },
@@ -285,7 +287,7 @@ internal fun ChatScreen(
                     // Two icons max (device feedback: four icons squeezed the
                     // title out) — gear for the frequent config switches,
                     // everything else in the overflow menu.
-                    IconButton(onClick = { configSheetOpen = true }) {
+                    if (butlerMenu == null) IconButton(onClick = { configSheetOpen = true }) {
                         Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.chat_open_settings))
                     }
                     val scratchlistCount by viewModel.scratchlistCount.collectAsState()
@@ -303,6 +305,11 @@ internal fun ChatScreen(
                             viewModel::parkComposerDraft
                         } else {
                             null
+                        },
+                        leadingItems = butlerMenu?.let { menu ->
+                            { close ->
+                                app.hapi.companion.feature.chat.jarvis.ButlerMenuItems(menu, onAdvanced = { configSheetOpen = true }, close)
+                            }
                         },
                     )
                 },
@@ -325,7 +332,7 @@ internal fun ChatScreen(
                     }
                     // Jarvis: thinking / tool / step / writing / done strip.
                     app.hapi.companion.feature.chat.jarvis.ActivityStatusBar(
-                        blocks = state.blocks, thinking = state.header.thinking, basePath = state.basePath,
+                        snapshot = state.activity, basePath = state.basePath,
                     )
                     QueuedMessagesBar(
                         rows = queuedRows,
@@ -452,12 +459,15 @@ private fun SessionOverflowMenu(
     onOpenScratchlist: (() -> Unit)? = null,
     /** null ⇒ hidden (scratchlist off or empty composer). */
     onParkDraft: (() -> Unit)? = null,
+    /** Jarvis butler entries shown first; receives the menu's close action. */
+    leadingItems: (@Composable (close: () -> Unit) -> Unit)? = null,
 ) {
     var open by remember { mutableStateOf(false) }
     IconButton(onClick = { open = true }) {
         Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.chat_session_actions))
     }
     DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+        leadingItems?.invoke { open = false }
         DropdownMenuItem(
             text = { Text(stringResource(R.string.chat_open_files)) },
             leadingIcon = { Icon(FolderGlyph, contentDescription = null) },

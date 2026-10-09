@@ -33,8 +33,10 @@ enum class ActivityPhase { Thinking, UsingTool, AwaitingApproval, Writing, Done 
 
 data class ActivitySnapshot(
     val phase: ActivityPhase,
-    /** The running / approval-waiting tool, when [phase] is about one. */
-    val tool: ToolCallBlock? = null,
+    /** Id of the running / approval-waiting tool, when [phase] is about one. */
+    val toolId: String? = null,
+    /** That tool's call, captured immutably (blocks are mutated by the pipeline). */
+    val toolCall: ChatToolCall? = null,
     /** Top-level tool calls since the last user message ("step" count). */
     val toolCalls: Int,
     /** createdAt (ms) of the user message that started this turn. */
@@ -65,7 +67,7 @@ fun deriveActivity(blocks: List<VisibleChatBlock>, thinking: Boolean): ActivityS
     }
     val lastAt = turn.lastOrNull()?.let(::latestCreatedAt)
     fun snapshot(phase: ActivityPhase, tool: ToolCallBlock? = null) =
-        ActivitySnapshot(phase, tool, toolCalls, startedAt, lastAt)
+        ActivitySnapshot(phase, tool?.id, tool?.tool, toolCalls, startedAt, lastAt)
 
     // A pending approval blocks the agent whatever the thinking flag says.
     awaiting?.let { return snapshot(ActivityPhase.AwaitingApproval, it) }

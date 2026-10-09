@@ -146,6 +146,8 @@ data class ChatUiState(
     val messagesVersion: Long = 0,
     val requiresLatestReset: Boolean = false,
     val processSteps: Map<String, Int> = emptyMap(),
+    /** Jarvis activity strip, from the unprojected blocks (projection drops group members). */
+    val activity: app.hapi.companion.feature.chat.jarvis.ActivitySnapshot? = null,
 )
 
 /** Composer bar state (M3a). */
@@ -1800,9 +1802,11 @@ class ChatViewModel(
         // syncGeneration 0 = no tail sync has even begun (the moment between
         // open and syncTail) — still "loading", never a flash of empty state.
         val syncSettled = !window.isSyncingTail && window.syncGeneration > 0
+        val header = buildHeader(inputs)
         return ChatUiState(
             sessionId = sessionId,
-            header = buildHeader(inputs),
+            header = header,
+            activity = app.hapi.companion.feature.chat.jarvis.deriveActivity(visibleBlocks, header.thinking),
             flavor = inputs.detail?.metadata?.flavor ?: inputs.summary?.metadata?.flavor,
             basePath = inputs.detail?.metadata?.path ?: inputs.summary?.metadata?.path,
             blocks = transcriptProjection.project(visibleBlocks),

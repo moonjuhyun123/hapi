@@ -48,6 +48,8 @@ internal fun ChatHost(
     onOpenFiles: () -> Unit,
     onOpenFile: (String, Int?) -> Unit,
     onOpenScratchlist: (() -> Unit)?,
+    /** Jarvis: non-null ⇒ this chat is the butler (see [ChatScreen]). */
+    butlerMenu: app.hapi.companion.feature.chat.jarvis.ButlerMenu? = null,
 ) {
     val navigation = rememberNavController()
     val entry by navigation.currentBackStackEntryAsState()
@@ -132,7 +134,7 @@ internal fun ChatHost(
                         viewModel, media, onBack, snackbarHostState = snackbar,
                         dictation = dictation, onOpenFiles = { pauseReading(); onOpenFiles() }, onOpenFile = openFile,
                         onOpenScratchlist = onOpenScratchlist?.let { open -> { pauseReading(); open() } },
-                        transcriptList = transcriptList, readingState = reading,
+                        transcriptList = transcriptList, readingState = reading, butlerMenu = butlerMenu,
                     )
                 }
                 for (kind in listOf("group", "tool", "process", "message")) {

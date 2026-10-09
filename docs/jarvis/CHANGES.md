@@ -13,9 +13,11 @@
 
 | 파일 | 바뀐 줄 | 이유 |
 |---|---|---|
-| `kotlin/.../feature/chat/ChatScreen.kt` | +4 | 입력창 위에 진행 표시줄(`ActivityStatusBar`)을 끼움 |
+| `kotlin/.../Navigation.kt` | +30 −10 | (집사) 첫 화면을 집사(`Routes.BUTLER`)로 바꿈. 알림·세션 목록에서 집사 세션을 열면 집사 화면으로 감. 연결 성공·허브 변경·새 세션 뒤 돌아갈 곳을 목록 대신 집사로 바꿈. `ChatViewModelHolder` 를 `internal` 로 공개(집사 화면이 같은 대화 객체를 씀). 스크래치리스트 「입력창으로 보내기」가 집사 대화에도 되게 함 |
+| `kotlin/.../feature/chat/ChatScreen.kt` | +16 −2 | 입력창 위에 진행 표시줄(`ActivityStatusBar`)을 끼움. (집사) 집사 모드면 뒤로 화살표·설정 톱니를 숨기고 ⋮ 메뉴 맨 위에 집사 항목을 넣음 |
+| `kotlin/.../feature/chat/ChatViewModel.kt` | +5 −1 | 진행 표시줄 판정(`deriveActivity`)을 화면에 넘기기 전 **원본 블록**으로 계산해 `ChatUiState.activity` 에 실음. 화면용으로 줄인 블록은 묶인 도구·하위 에이전트 내용이 비어 있어서 판정이 틀렸음(아래 「리뷰 반영」) |
 | `kotlin/.../feature/chat/blocks/ToolCallBlockView.kt` | +5 −15 | 대화 속 권한 요청 카드를 새 패널(`JarvisPendingRequest`)로 바꿈 |
-| `kotlin/.../feature/chat/ChatHost.kt` | +1 −2 | 도구 상세 화면의 권한 요청도 같은 새 패널로 바꿈 |
+| `kotlin/.../feature/chat/ChatHost.kt` | +4 −3 | 도구 상세 화면의 권한 요청도 같은 새 패널로 바꿈. (집사) 집사 메뉴를 화면에 넘김 |
 | `kotlin/.../feature/chat/blocks/PermissionActionViews.kt` | 3줄 `private`→`internal` | 새 패널이 원본과 **같은 버튼 규칙**(Codex 여부, 편집 도구 목록)을 쓰도록 공개만 함 |
 | `kotlin/.../feature/chat/composer/QueuedMessagesBar.kt` | 1줄 | 하드코딩된 영어 `"Retry"` 를 기존 문자열 리소스 `chat_retry` 로 바꿈 |
 | `kotlin/.../ui/theme/Theme.kt` | +1 | 앱 전체 글꼴 설정에 한국어 줄바꿈 규칙(`ReadableTypography`)을 넣음 |
@@ -29,14 +31,18 @@
 | 파일 | 하는 일 |
 |---|---|
 | `android/app/src/main/res/values-ko/strings.xml` | 원본 문자열 518개 전부의 한국어 번역 |
-| `android/app/src/main/res/values/strings_jarvis.xml` | 새 화면용 문자열(영어 기본값) 21개 |
+| `android/app/src/main/res/values/strings_jarvis.xml` | 새 화면용 문자열(영어 기본값) 44개 |
 | `android/app/src/main/res/values-ko/strings_jarvis.xml` | 위의 한국어 |
 | `android/app/src/main/res/values-zh-rCN/strings_jarvis.xml` | 위의 중국어(번역 빠짐 경고를 막으려고) |
 | `android/app/src/main/kotlin/.../feature/chat/jarvis/JarvisChatModel.kt` | 화면 없는 순수 계산: 진행 단계 판정, 권한 요청 종류·원문, 「한 번 눌러 답하기」 판정 |
 | `android/app/src/main/kotlin/.../feature/chat/jarvis/ActivityStatusBar.kt` | 진행 표시줄 화면 |
 | `android/app/src/main/kotlin/.../feature/chat/jarvis/JarvisPermissionPanel.kt` | 질문 큰 버튼, 권한 요청 요약·원문 접기·두 번 눌러 승인 |
 | `android/app/src/main/kotlin/.../ui/theme/ReadableTypography.kt` | 한국어 어절 단위 줄바꿈 글꼴 설정 |
-| `android/app/src/test/kotlin/.../feature/chat/jarvis/JarvisChatModelTest.kt` | 위 순수 계산의 JVM 시험 18개 |
+| `android/app/src/test/kotlin/.../feature/chat/jarvis/JarvisChatModelTest.kt` | 위 순수 계산의 JVM 시험 20개 |
+| `android/app/src/main/kotlin/.../feature/jarvis/Butler.kt` | (집사) 화면 없는 순수 계산: 누가 집사인지 고르기, 「다른 하네스로 옮기기」 순서(만들기 → 새것 고정 → 옛것 해제) |
+| `android/app/src/main/kotlin/.../feature/jarvis/ButlerRoute.kt` | (집사) 첫 화면: 집사 대화 / 「집사가 아직 없습니다」 / 옮기기 창 |
+| `android/app/src/main/kotlin/.../feature/chat/jarvis/ButlerMenu.kt` | (집사) ⋮ 메뉴의 집사 항목(세션 목록·새 세션·옮기기·고급) |
+| `android/app/src/test/kotlin/.../feature/jarvis/ButlerTest.kt` | (집사) 위 순수 계산의 JVM 시험 10개 |
 | `docs/jarvis/X5-코드확인.md` | 0단계 코드 확인 답 |
 | `docs/jarvis/CHANGES.md` | 이 문서 |
 
@@ -62,6 +68,38 @@
    - 실수 방지: 「거절」은 왼쪽, 「승인」은 오른쪽에 떨어뜨려 놓았습니다. 「승인」은 **한 번 누르면 「한 번 더 눌러 승인」으로 바뀌고 두 번째에 승인**됩니다(4초 지나면 되돌아감). 카드가 뜬 직후 0.7초는 눌리지 않습니다. 「이 세션 동안 허용」 같은 넓은 허락은 「다른 선택」 메뉴 안에 있습니다.
    - 위험한지 아닌지는 앱이 판단하지 않습니다. 모든 요청을 같은 모양으로 보여 줍니다.
 
+5. **집사 첫 화면 (2차, A36 실사용 피드백)**
+   - 피드백: 「집사 대화로 가야 하는데, 하네스·모델 고르라는 거 같아서 이상함」. 자비스는 집사가 서버에 하나이고, 하네스·모델은 서버가 정합니다.
+   1. **앱을 열면 집사 대화가 바로 뜹니다.** 세션 목록은 더 이상 첫 화면이 아닙니다.
+      - 집사 = 전역 고정(pin: global)된 세션 가운데 가장 최근에 움직인 것입니다(`updatedAt` 가 가장 늦은 것, 같으면 `activeAt`, 그다음 id).
+      - 앱은 집사를 고르거나 만들지 않습니다.
+      - 없으면 「집사가 아직 없습니다」와 「세션 목록 보기」·「다시 확인」 버튼을 보여 줍니다. 허브에 못 붙으면 「허브에 연결하지 못했습니다」를 보여 줍니다.
+      - 서버가 다른 세션을 전역 고정하면 바로 따라갑니다. 허브가 고정 변경을 세션 전체 정보로 실시간 전송하고(`hub/src/sync/sessionCache.ts` 의 `refreshSession`), 앱도 화면이 다시 보일 때마다 목록을 새로 받습니다.
+      - 허브와 아직 연결 안 된 앱은 예전처럼 연결 화면부터 뜹니다.
+   2. **집사 화면에는 하네스·모델·effort·권한 모드 고르기가 없습니다.**
+      - 뒤로 화살표와 ⚙(설정 톱니)를 숨겼습니다.
+      - ⋮ 메뉴 맨 위에 「세션 목록 / 새 세션 / 다른 하네스로 옮기기 / 고급」이 있습니다. 「고급」을 누르면 원래 ⚙ 창(권한 모드·모델·effort)이 열립니다.
+      - 원래 메뉴 항목(파일, 스크래치리스트, 이름 바꾸기, 다시 열기, 삭제)은 그 아래 그대로입니다.
+   3. **세션 목록·새 세션은 메뉴 안쪽으로 옮겼습니다(지우지 않음).**
+      - 목록과 새 세션 화면은 원래 그대로 동작합니다.
+      - 목록에서 집사 세션을 누르면 같은 대화를 두 번 띄우지 않고 집사 화면으로 돌아갑니다.
+   4. **「다른 하네스로 옮기기」**
+      - 머신·폴더는 지금 집사 것을 보여 주기만 하고 바꾸지 못합니다. Claude / Codex 중 하나만 고릅니다. 지금 쓰는 하네스와 그 머신에 없는 하네스는 고를 수 없습니다.
+      - 모델은 고르지 않습니다. 새 세션 요청에는 폴더·하네스·`sessionType=simple` 만 실립니다(시험으로 확인).
+      - 순서: 새 세션 만들기 → 새 세션 `PUT /api/sessions/:id/pin {"mode":"global"}` → 원래 집사 `{"mode":"none"}`. 새 고정을 먼저 해서 집사가 없는 순간이 없습니다.
+      - 실패하면:
+        1. 만들기 실패 → 아무것도 안 바뀝니다.
+        2. 새 세션 고정 실패(한 번 다시 시도) → 새 세션은 남지만 집사는 그대로입니다.
+        3. 원래 집사 고정 해제 실패 → 새 집사로 바뀌지만 원래 것도 고정이 남습니다. 창에 안내합니다.
+      - 대화 내용은 넘기지 않습니다(앱 일이 아님). 창에 「대화 내용은 넘어가지 않습니다」라고 적어 두었습니다.
+   5. **알림·딥링크로 특정 세션이 열리는 원본 동작은 그대로입니다.** 뒤로 가면 목록 대신 집사로 돌아갑니다. 그 세션이 집사면 집사 화면이 열립니다.
+   - 리뷰 반영(Codex 자동 리뷰가 1차 커밋에 단 두 지적, 둘 다 코드로 확인함):
+     1. 진행 표시줄이 묶인 도구(연속 Read/Grep 등)를 0개로 세고 「생각 중」으로 보였고, 하위 에이전트 안의 승인 대기를 못 봤습니다. 화면용으로 줄인 블록(`TranscriptProjection`)을 넣었기 때문입니다. 이제 `ChatViewModel` 이 원본 블록으로 계산합니다. 같은 실수를 막는 시험도 넣었습니다.
+     2. 「거절/중단」 버튼이 카드가 뜬 직후 0.7초 보호를 받지 않았습니다. 이제 「승인」과 같이 보호합니다.
+   - 알려진 한계:
+     1. 세션 목록 화면에는 뒤로 화살표가 없습니다(원본에서 첫 화면이던 화면이라). 폰의 뒤로 가기로 집사에 돌아갑니다.
+     2. 집사를 「전역 고정」으로만 알아봅니다. 다른 세션을 다른 이유로 전역 고정하면 그쪽이 집사로 잡힐 수 있습니다 → 「엔진 변경 필요」 7번.
+
 ## 새 라이브러리
 
 없습니다.
@@ -71,8 +109,8 @@
 - 환경: 이 클라우드 세션에 안드로이드 SDK 가 없어서, 작업 중에 SDK(platform 36, build-tools 36/35)를 받아 깔았습니다.
 - Maven Central 이 429(요청 너무 많음)를 돌려줘서, 이 세션에서만 Google 의 Maven Central 미러를 먼저 쓰도록 `~/.gradle/init.d` 에 스크립트를 두었습니다. 저장소에는 넣지 않았습니다.
 - `./gradlew :app:assembleDebug` — **성공**.
-- `./gradlew :core:protocol:test :core:data:testDebugUnitTest :app:testDebugUnitTest` — **성공**. 실패 0 (protocol 268개, data 241개, app 252개. app 중 새 시험 18개).
-- `./gradlew :app:lintDebug` — PR 설명에 결과를 적습니다.
+- `./gradlew :core:protocol:test :core:data:testDebugUnitTest :app:testDebugUnitTest` — **성공**. 실패 0 (protocol 268개, data 241개, app 264개. app 중 새 시험 30개: 진행·권한 20개 + 집사 10개).
+- `./gradlew :app:lintDebug` — **성공** (오류 0, 경고는 원본에 있던 종류뿐).
 - **못 돌린 것**: 기기·에뮬레이터가 없어 Compose 계측 시험(`connectedDebugAndroidTest`)과 실제 화면 확인은 못 했습니다.
 
 ## 남은 영어 (일부러 그대로 둠)
@@ -89,3 +127,5 @@
 4. **「되돌릴 수 없는 행동」 표시**: 서버가 판정한 결과를 앱에 보여 주려면, 권한 요청에 그 판정을 싣는 칸이 허브·프로토콜에 있어야 합니다. 지금은 없어서 앱은 모든 요청을 같게 보여 줍니다.
 5. **알림 문구 한국어**: 네이티브 알림 문구는 허브가 영어로 만듭니다(`hub/src/notifications/nativeNotificationComposer.ts`).
 6. **Firebase 없는 빌드의 알림**: 앱이 닫혀 있을 때 알림을 받을 길이 없습니다. Firebase 프로젝트를 만들거나 PWA 웹 푸시를 써야 합니다(X5 문서 6번).
+7. **「이 세션이 집사」 표식**: 허브에는 집사를 가리키는 전용 칸이 없어서, 앱은 「전역 고정 + 가장 최근에 움직인 것」으로 짐작합니다. 서버가 정한 집사를 정확히 알려면 허브에 전용 표식(예: 설정값이나 세션 태그)이 있어야 합니다.
+8. **하네스를 옮길 때 대화 넘기기**: 앱 일이 아닙니다. 서버(자비스 쪽 코드)나 허브가 새 세션에 앞 대화를 이어 줘야 합니다.
