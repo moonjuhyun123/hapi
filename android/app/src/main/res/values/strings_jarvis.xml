@@ -61,4 +61,6 @@
     <string name="jarvis_push_replied">The butler replied</string>
     <string name="jarvis_push_asks">Your butler has a question</string>
     <string name="jarvis_push_permission">Your butler asks for permission</string>
+    <string name="jarvis_channel_butler">Butler</string>
+    <string name="jarvis_channel_butler_desc">Replies, questions and permission requests from your butler</string>
 </resources>

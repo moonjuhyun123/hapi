@@ -61,4 +61,6 @@
     <string name="jarvis_push_replied">管家已回复</string>
     <string name="jarvis_push_asks">管家有个问题</string>
     <string name="jarvis_push_permission">管家请求许可</string>
+    <string name="jarvis_channel_butler">管家</string>
+    <string name="jarvis_channel_butler_desc">管家的回复、提问和许可请求</string>
 </resources>

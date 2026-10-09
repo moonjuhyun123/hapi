@@ -53,6 +53,6 @@ class HapiFirebaseMessagingService : FirebaseMessagingService() {
             permission = context.getString(app.hapi.companion.R.string.jarvis_push_permission),
         )
         val shown = app.hapi.companion.feature.jarvis.push.butlerPush(payload, latest, labels) ?: return
-        PushNotifications.show(context, shown)
+        PushNotifications.show(context, shown, app.hapi.companion.feature.jarvis.push.ButlerChannel.ID)
     }
 }

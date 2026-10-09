@@ -50,8 +50,8 @@ object PushNotifications {
     }
 
     /** Renders [payload] (already past the suppress-when-open check). */
-    fun show(context: Context, payload: PushPayload) {
-        val builder = baseBuilder(context, payload.channelId, payload.sessionId)
+    fun show(context: Context, payload: PushPayload, channelId: String = payload.channelId) {
+        val builder = baseBuilder(context, channelId, payload.sessionId)
             .setContentTitle(payload.displayTitle)
             .setContentText(firstLine(payload.displayBody))
             .setStyle(NotificationCompat.BigTextStyle().bigText(payload.displayBody))

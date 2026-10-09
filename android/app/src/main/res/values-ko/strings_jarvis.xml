@@ -61,4 +61,6 @@
     <string name="jarvis_push_replied">집사가 답했습니다</string>
     <string name="jarvis_push_asks">집사가 물어봅니다</string>
     <string name="jarvis_push_permission">집사가 허락을 구합니다</string>
+    <string name="jarvis_channel_butler">집사</string>
+    <string name="jarvis_channel_butler_desc">집사의 답·질문·허락 요청</string>
 </resources>

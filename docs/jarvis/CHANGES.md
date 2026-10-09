@@ -196,6 +196,8 @@
    - 주현님 「hapi 알림 달아야 함」. 허브 푸시 문구는 하네스 이름을 낸다(「Ready for input」·「Claude is waiting in 집사」) → 앱이 받는 순간 고쳐 그린다: 제목 「집사」, `ready` 본문 = **집사가 방금 한 말**(허브에서 최신 30개를 읽어 마지막 집사 글, 마크다운 걷어 400자), 못 읽으면 「집사가 답했습니다」. 질문 = 「집사가 물어봅니다」, 허락 = 「집사가 허락을 구합니다」(본문은 허브 것). 세션 이름 줄은 뺀다.
    - 넘김 꾸러미에 대한 받는 쪽의 「이어받음」 턴은 알리지 않는다(13단계와 같은 규칙). 다시 보낸 말에 대한 답은 알린다.
    - `feature/jarvis/push/ButlerPush.kt`(순수 함수 + 허브 읽기), `HapiFirebaseMessagingService.onMessageReceived` 에 몇 줄. 푸시를 실제로 받으려면 **우리 Firebase 프로젝트**가 필요하다 — `android/app/google-services.json`(gitignore) + 허브 `FCM_SERVICE_ACCOUNT_PATH`(허브가 그걸 보면 relay 대신 direct FCM). 공식 relay 는 공식 빌드(공식 Firebase 설정)만 받는다.
+   - 알림은 새 채널 `jarvis_butler`(「집사」, HIGH + 진동)로 낸다 — 위쪽 채널은 진동 꺼짐·`ready` 는 DEFAULT 로 만들어져 A36 에서 진동 없이 떴다(10-09 실측), 안드로이드는 만든 채널의 소리·진동을 앱이 못 바꾼다. `PushNotifications.show` 에 채널 인자 하나(기본은 위쪽 그대로).
+   - 실측(10-09 22:3x): 우리 Firebase 프로젝트 + 허브 `androidPushMode: fcm` → 기기 등록 200 → 집사가 먼저 말 건 턴의 `ready` 가 폰에 `jarvis_butler` 채널로 뜸(중요도 4·진동 켜짐).
    - 시험: `ButlerPushTest` 6개.
 
 ## 새 라이브러리
