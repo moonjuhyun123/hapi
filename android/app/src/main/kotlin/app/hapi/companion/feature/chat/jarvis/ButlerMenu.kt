@@ -25,9 +25,18 @@ data class ButlerMenu(
     val onPhoneActivity: () -> Unit = {},
 )
 
-/** Leading ⋮ entry for butler mode: phone activity. Files follow as 「드라이브」 (upstream row, relabelled). */
+/**
+ * Leading ⋮ entries for butler mode: 「화면 비우기」 (step 12 — view only, the
+ * butler keeps its context) and phone activity. Files follow as 「드라이브」
+ * (upstream row, relabelled).
+ */
 @Composable
-internal fun ButlerMenuItems(menu: ButlerMenu, close: () -> Unit) {
+internal fun ButlerMenuItems(menu: ButlerMenu, close: () -> Unit, onClearScreen: () -> Unit = {}) {
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.jarvis_menu_clear_screen)) },
+        onClick = { close(); onClearScreen() },
+        modifier = Modifier.testTag("butler-menu-clear-screen"),
+    )
     DropdownMenuItem(
         text = { Text(stringResource(R.string.jarvis_menu_phone_activity)) },
         onClick = { close(); menu.onPhoneActivity() },

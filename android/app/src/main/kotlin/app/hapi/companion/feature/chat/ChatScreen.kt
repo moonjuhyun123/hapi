@@ -161,6 +161,12 @@ internal fun ChatScreen(
         }
     }
     val scope = rememberCoroutineScope()
+    // Jarvis 「화면 비우기」: the butler's view floor lives in prefs (one room across hand-overs).
+    val butlerMode = butlerMenu != null
+    val clearPrefs = androidx.compose.runtime.remember { app.hapi.companion.feature.chat.jarvis.ScreenClearPrefs(context) }
+    androidx.compose.runtime.LaunchedEffect(clearPrefs, butlerMode) {
+        if (butlerMode) clearPrefs.clearedThrough.collect(viewModel::setClearedThrough) else viewModel.setClearedThrough(null)
+    }
     val micPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
@@ -316,7 +322,11 @@ internal fun ChatScreen(
                         },
                         leadingItems = butlerMenu?.let { menu ->
                             { close ->
-                                app.hapi.companion.feature.chat.jarvis.ButlerMenuItems(menu, close)
+                                app.hapi.companion.feature.chat.jarvis.ButlerMenuItems(
+                                    menu,
+                                    close,
+                                    onClearScreen = { viewModel.clearPoint()?.let { point -> scope.launch { clearPrefs.set(point) } } },
+                                )
                             }
                         },
                     )
@@ -384,13 +394,18 @@ internal fun ChatScreen(
                     when {
                         state.isInitialLoading -> InitialLoading()
                         state.loadFailed -> LoadFailed(onRetry = viewModel::retry)
-                        state.blocks.isEmpty() && !state.hasMore -> EmptyChat()
+                        state.blocks.isEmpty() && !state.hasMore && !state.screenCleared -> EmptyChat()
                         else -> ChatTranscript(
                             state = state, paging = historyPaging, jumpToken = jumpToken,
                             jumpingLatest = jumpingLatest,
                             onViewport = viewModel::readingViewportChanged,
                             onLayout = viewModel::historyLaidOut,
                             onRetryHistory = viewModel::loadOlder,
+                            onRestoreCleared = {
+                                scope.launch { clearPrefs.set(null) }
+                                viewModel.setClearedThrough(null)
+                                viewModel.loadOlder()
+                            },
                             onJumpToLatest = viewModel::jumpToLatest,
                             listState = transcriptList, readingState = readingState,
                         )

@@ -61,6 +61,7 @@
 | `android/app/src/test/kotlin/.../feature/jarvis/drive/DriveViewModelTest.kt` | (9단계) JVM 시험 5개 |
 | `android/app/src/main/kotlin/.../feature/jarvis/drive/ContentSearchClient.kt` | (10단계) 우리 서버 내용 검색 부르기(입구·토큰 = 폰 활동 것) |
 | `android/app/src/main/res/mipmap-*/jarvis_launcher_*` · `values/colors_jarvis.xml` | (11단계) 집사 아이콘 층 · 바탕색 |
+| `android/app/src/main/kotlin/.../feature/chat/jarvis/ScreenClear.kt` | (12단계) 화면 비우기 바닥(저장·거르기·멈춤) |
 | `docs/jarvis/icon/` | (11단계) 아이콘 원본 · 층 만드는 도구 · 미리보기 |
 | `docs/jarvis/X5-코드확인.md` | 0단계 코드 확인 답 |
 | `docs/jarvis/CHANGES.md` | 이 문서 |
@@ -175,6 +176,13 @@
    - 위 둘을 `jarvis_launcher`·`jarvis_launcher_round` 로 새로 만들고 매니페스트 `android:icon`·`roundIcon` 두 줄만 바꿨다 — 위쪽 원래 아이콘 파일은 손대지 않았다(린트 미사용 경고 4개는 그래서).
    - 확인: `aapt2 dump badging` → label 「집사」 · icon `jarvis_launcher.xml`. A36 에 설치(홈 화면 확인은 주현님).
 
+12. **화면 비우기 (12단계, 이 서버 — 2026-10-09)**
+   - 주현님 「위에 대화가 너저분해서 그거 날리고 싶다」 — 맥락 초기화(`/clear`)가 아니라 **화면만**. 집사 ⋮ 맨 위 「화면 비우기」.
+   - 누르는 순간 받은 말 중 가장 최근 것의 시각(허브 시계 — 폰 시계가 빨라도 곧 올 답이 숨지 않게, 보내는 중·대기 중인 말은 빼고)을 바닥으로 저장한다(`jarvis_view` DataStore, 방 하나라 넘김 사슬 전체에 걸린다). 그 시각 이하 줄은 안 그리고, 더 옛 페이지는 안 불러온다.
+   - 맨 위 줄이 「이전 대화를 화면에서 비웠습니다 · 다시 보기」로 바뀐다 — 숨긴 걸 숨기지 않는다. 누르면 바닥을 지우고 다시 불러온다.
+   - 집사 맥락·허브 기록·넘김 사슬은 그대로다. 위쪽(upstream) 코드는 `ChatViewModel` 의 입력 하나·`buildUiState` 몇 줄·`pumpHistory` 한 줄, `ChatTranscript` 맨 위 줄 분기, `ChatScreen` 연결만.
+   - 시험: `ScreenClearTest` 5개(바닥 없음 · 바닥 이하 숨김과 멈춤 · 바닥이 더 옛날이면 계속 · 바닥 = 받은 말 중 최신 · 비운 뒤 실행된 대기 말은 보임).
+
 ## 새 라이브러리
 
 없습니다.
@@ -191,6 +199,7 @@
 - 9단계(이 서버, 2026-10-09): app 시험 289개 실패 0(새 5개) · 린트 오류 0.
 - 10단계(이 서버, 2026-10-09): app 시험 291개 실패 0(새 2개) · 린트 오류 0.
 - 11단계(이 서버, 2026-10-09): 린트 오류 0 · 경고 86(82 → +4 = 이제 안 쓰는 위쪽 원래 아이콘).
+- 12단계(이 서버, 2026-10-09): app 시험 296개 실패 0(새 5개) · 린트 오류 0 · 경고 86(그대로).
 - **못 돌린 것**: 기기·에뮬레이터가 없어 Compose 계측 시험(`connectedDebugAndroidTest`)과 실제 화면 확인은 못 했습니다.
 
 ## 남은 영어 (일부러 그대로 둠)

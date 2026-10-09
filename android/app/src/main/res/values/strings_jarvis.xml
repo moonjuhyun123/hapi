@@ -55,4 +55,6 @@
     <string name="jarvis_drive_no_match">No matching files</string>
     <string name="jarvis_drive_error">Could not load</string>
     <string name="jarvis_drive_content_failed">Content search unavailable (%1$s) — names only</string>
+    <string name="jarvis_menu_clear_screen">Clear screen</string>
+    <string name="jarvis_screen_cleared">Screen cleared · show earlier</string>
 </resources>

@@ -66,6 +66,8 @@ internal fun ChatTranscript(
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
     readingState: TranscriptReadingState = rememberTranscriptReadingState(state.sessionId),
+    /** Jarvis 「화면 비우기」: the top row's 「다시 보기」 when older rows are hidden. */
+    onRestoreCleared: () -> Unit = {},
 ) {
     val rowState = rememberSaveableStateHolder()
     val stateKeys = remember(state.sessionId) { mutableSetOf<String>() }
@@ -234,7 +236,8 @@ internal fun ChatTranscript(
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Bottom),
         ) {
             item(key = HISTORY_KEY, contentType = HISTORY_KEY) {
-                HistoryControl(paging.phase, state.hasMore, state.isSyncingTail, onRetryHistory)
+                if (state.screenCleared) ClearedControl(onRestoreCleared)
+                else HistoryControl(paging.phase, state.hasMore, state.isSyncingTail, onRetryHistory)
             }
             items(rows, key = { it.id }, contentType = { it.block.contentKind }) { row ->
                 rowState.SaveableStateProvider(row.id) {
@@ -287,6 +290,17 @@ private data class TailLayout(
     val messagesVersion: Long,
     val jumpToken: Long,
 )
+
+/** Jarvis: older rows are hidden by 「화면 비우기」 — say so, and offer them back. */
+@Composable
+private fun ClearedControl(onRestore: () -> Unit) {
+    TextButton(
+        onClick = onRestore,
+        modifier = Modifier.fillMaxWidth().height(44.dp).testTag("chat-cleared"),
+    ) {
+        Text(stringResource(R.string.jarvis_screen_cleared), style = MaterialTheme.typography.labelSmall)
+    }
+}
 
 @Composable
 private fun HistoryControl(
