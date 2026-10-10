@@ -284,6 +284,10 @@ private fun EventEditor(draft: EventDraft, saving: Boolean, error: String?, view
                     }
                 }
                 OutlinedTextField(draft.note, { viewModel.change(draft.copy(note = it)) }, label = { Text(stringResource(R.string.jarvis_workout_note)) })
+                Row(verticalAlignment = Alignment.CenterVertically) { // step 24: D-day 위젯에 띄울 일정
+                    Text(stringResource(R.string.jarvis_calendar_dday), modifier = Modifier.weight(1f))
+                    Switch(checked = draft.dday, onCheckedChange = { viewModel.change(draft.copy(dday = it)) })
+                }
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp) }
             }
         },

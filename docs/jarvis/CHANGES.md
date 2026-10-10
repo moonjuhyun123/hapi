@@ -246,6 +246,12 @@
    - `feature/jarvis/widget/JarvisWidgets.kt` · `res/layout/jarvis_widget_{dday,todo}.xml` · `res/xml/jarvis_widget_{dday,todo}_info.xml`.
    - 시험: `JarvisWidgetsTest` 3개. 린트 경고 +4 = `targetCellWidth/Height`(API 31+ 속성, 낮은 판에선 무시돼 그대로 둠).
 
+24. **D-day 고르기 · 할 일 줄에 날짜 (24단계, 이 서버 — 2026-10-10)**
+   - 주현님 「D-day 에 뭘 할지 설정이 안 되는데?」·「할 일에서는 날짜도 써줘」.
+   - 캘린더 일정 고치기 화면 맨 아래 「D-day 위젯에 띄우기」 스위치(`CalEvent.dday`·`EventDraft.dday`, 저장 때 늘 보냄). 여럿 켜면 가장 가까운 것이 뜬다.
+   - 할 일 줄 = `D-6 │ 10/16 금 08:00 보컬` — 날짜 글자(`day`)도 서버(`cal.widget`)가 쓴다.
+   - 시험: `CalendarModelTest` 본문 키에 `dday` · `JarvisWidgetsTest` 줄 글자.
+
 ## 새 라이브러리
 
 없습니다.

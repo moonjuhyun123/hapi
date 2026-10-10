@@ -101,4 +101,5 @@
     <string name="jarvis_widget_empty">다가오는 일이 없어요</string>
     <string name="jarvis_widget_no_dday">디데이 없음</string>
     <string name="jarvis_widget_no_server">⋮ 폰 활동에서 서버를 넣어 주세요</string>
+    <string name="jarvis_calendar_dday">D-day 위젯에 띄우기</string>
 </resources>

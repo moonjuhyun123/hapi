@@ -26,6 +26,8 @@ data class CalEvent(
     val time: String? = null,
     @SerialName("end_time") val endTime: String? = null,
     val note: String? = null,
+    /** Shown on the D-day widget (step 24) — the nearest marked event wins. */
+    val dday: Boolean = false,
 )
 
 @Serializable
@@ -86,6 +88,7 @@ data class EventDraft(
     val time: String = "",
     val endTime: String = "",
     val note: String = "",
+    val dday: Boolean = false,
 ) {
     /** First problem, or null when it can be saved. Same rules as the server (cal.py validate). */
     fun problem(): String? = when {
@@ -107,10 +110,11 @@ data class EventDraft(
             if (endTime.isNotBlank()) put("end_time", endTime)
         }
         if (note.isNotBlank()) put("note", note.trim())
+        put("dday", dday)
     }
 }
 
-fun CalEvent.draft() = EventDraft(id, title, date, endDate.orEmpty(), time == null, time.orEmpty(), endTime.orEmpty(), note.orEmpty())
+fun CalEvent.draft() = EventDraft(id, title, date, endDate.orEmpty(), time == null, time.orEmpty(), endTime.orEmpty(), note.orEmpty(), dday)
 
 fun newDraft(day: LocalDate) = EventDraft(date = day.toString())
 

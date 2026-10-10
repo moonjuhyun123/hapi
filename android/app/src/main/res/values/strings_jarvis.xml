@@ -101,4 +101,5 @@
     <string name="jarvis_widget_empty">Nothing coming up</string>
     <string name="jarvis_widget_no_dday">No D-day set</string>
     <string name="jarvis_widget_no_server">Open 「⋮ Phone activity」 to set the server</string>
+    <string name="jarvis_calendar_dday">Show on D-day widget</string>
 </resources>

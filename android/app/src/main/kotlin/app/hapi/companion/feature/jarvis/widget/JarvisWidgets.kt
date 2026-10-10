@@ -40,13 +40,21 @@ import kotlinx.serialization.json.Json
 data class WidgetDday(val title: String, val date: String, val label: String)
 
 @Serializable
-data class WidgetItem(val kind: String, val date: String, val time: String? = null, val title: String, val label: String)
+data class WidgetItem(
+    val kind: String,
+    val date: String,
+    /** 「10/16 금」 — written by the server (step 24). */
+    val day: String? = null,
+    val time: String? = null,
+    val title: String,
+    val label: String,
+)
 
 @Serializable
 data class WidgetData(val today: String = "", val dday: WidgetDday? = null, val items: List<WidgetItem> = emptyList())
 
-/** One row of the to-do widget: 「D-1」 and 「08:00 보컬」. */
-fun todoRowText(item: WidgetItem): String = listOfNotNull(item.time, item.title).joinToString(" ")
+/** One row of the to-do widget: 「D-6」 and 「10/16 금 08:00 보컬」. */
+fun todoRowText(item: WidgetItem): String = listOfNotNull(item.day, item.time, item.title).joinToString(" ")
 
 const val TODO_ROWS = 5
 

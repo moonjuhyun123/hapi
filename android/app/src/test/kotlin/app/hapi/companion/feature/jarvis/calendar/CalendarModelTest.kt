@@ -39,7 +39,7 @@ class CalendarModelTest {
 
     @Test fun `body leaves out what is empty, all-day drops times`() {
         val body = newDraft(LocalDate.of(2026, 10, 12)).copy(title = "회의", time = "10:00").body()
-        assertEquals(setOf("title", "date"), body.keys)
+        assertEquals(setOf("title", "date", "dday"), body.keys)
         val timed = CalEvent("x", "회의", "2026-10-12", time = "10:00", note = "3층").draft().body()
         assertEquals("x", timed["id"]!!.jsonPrimitive.content)
         assertEquals("10:00", timed["time"]!!.jsonPrimitive.content)

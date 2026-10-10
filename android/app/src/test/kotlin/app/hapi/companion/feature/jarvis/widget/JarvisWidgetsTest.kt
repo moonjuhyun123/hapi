@@ -9,8 +9,8 @@ class JarvisWidgetsTest {
     private val json = Json { ignoreUnknownKeys = true }
 
     @Test fun rowShowsTimeOnlyWhenThere() {
-        assertEquals("08:00 보컬", todoRowText(WidgetItem("일정", "2026-10-16", "08:00", "보컬", "D-6")))
-        assertEquals("창경", todoRowText(WidgetItem("일정", "2026-10-23", null, "창경", "D-13")))
+        assertEquals("10/16 금 08:00 보컬", todoRowText(WidgetItem("일정", "2026-10-16", "10/16 금", "08:00", "보컬", "D-6")))
+        assertEquals("10/23 금 창경", todoRowText(WidgetItem("일정", "2026-10-23", "10/23 금", null, "창경", "D-13")))
     }
 
     @Test fun readsServerShape() {
