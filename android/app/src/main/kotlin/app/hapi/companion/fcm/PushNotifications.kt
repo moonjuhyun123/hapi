@@ -50,8 +50,8 @@ object PushNotifications {
     }
 
     /** Renders [payload] (already past the suppress-when-open check). */
-    fun show(context: Context, payload: PushPayload) {
-        val builder = baseBuilder(context, payload.channelId, payload.sessionId)
+    fun show(context: Context, payload: PushPayload, channelId: String = payload.channelId) {
+        val builder = baseBuilder(context, channelId, payload.sessionId)
             .setContentTitle(payload.displayTitle)
             .setContentText(firstLine(payload.displayBody))
             .setStyle(NotificationCompat.BigTextStyle().bigText(payload.displayBody))
@@ -122,7 +122,7 @@ object PushNotifications {
 
     private fun baseBuilder(context: Context, channelId: String, sessionId: String?) =
         NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_stat_hapi)
+            .setSmallIcon(R.drawable.ic_stat_jarvis) // Jarvis (step 16): the butler's silhouette, docs/jarvis/icon
             .apply { sessionId?.let { setContentIntent(openSessionIntent(context, it)) } }
 
     private fun notify(context: Context, tag: String, notification: Notification) {

@@ -24,7 +24,8 @@ import kotlinx.coroutines.flow.map
 enum class AppLanguage(val storageKey: String, val localeTags: String) {
     SYSTEM("system", ""),
     ENGLISH("en", "en"),
-    SIMPLIFIED_CHINESE("zh-Hans", "zh-Hans");
+    SIMPLIFIED_CHINESE("zh-Hans", "zh-Hans"),
+    KOREAN("ko", "ko");
 
     companion object {
         fun fromStorageKey(raw: String?): AppLanguage =

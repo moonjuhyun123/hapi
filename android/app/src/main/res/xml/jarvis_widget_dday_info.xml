@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:configure="app.hapi.companion.feature.jarvis.widget.DdayConfigActivity"
+    android:widgetFeatures="reconfigurable"
+    android:description="@string/jarvis_widget_dday_desc"
+    android:initialLayout="@layout/jarvis_widget_dday"
+    android:minWidth="110dp"
+    android:minHeight="40dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="1"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

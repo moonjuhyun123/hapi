@@ -5,7 +5,6 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import app.hapi.companion.feature.chat.blocks.AgentEventBlockView
 import app.hapi.companion.feature.chat.blocks.AgentReasoningBlockView
-import app.hapi.companion.feature.chat.blocks.AgentTextBlockView
 import app.hapi.companion.feature.chat.blocks.CliOutputBlockView
 import app.hapi.companion.feature.chat.blocks.CodexReviewBlockView
 import app.hapi.companion.feature.chat.blocks.GeneratedImageBlockView
@@ -65,8 +64,11 @@ fun ChatBlockCard(
     processSteps: Int? = null,
 ) {
     when (block) {
-        is UserTextBlock -> UserTextBlockView(block, modifier)
-        is AgentTextBlock -> AgentTextBlockView(block, modifier)
+        is UserTextBlock -> if (app.hapi.companion.feature.chat.jarvis.isOutreachLocalId(block.localId)) {
+            app.hapi.companion.feature.chat.jarvis.OutreachChip(block, modifier) // Jarvis: cron instruction
+        } else UserTextBlockView(block, modifier)
+        // Jarvis (step 19): every butler message is its own card; server notices tinted.
+        is AgentTextBlock -> app.hapi.companion.feature.chat.jarvis.ButlerCard(block, modifier)
         is AgentReasoningBlock -> AgentReasoningBlockView(block, modifier)
         is AgentEventBlock -> AgentEventBlockView(block, modifier)
         is CliOutputBlock -> CliOutputBlockView(block, modifier)

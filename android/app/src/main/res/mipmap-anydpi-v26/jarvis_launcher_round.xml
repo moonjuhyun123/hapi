@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 집사 아이콘 (Jarvis fork, docs/jarvis/CHANGES.md 11단계) — 층은 docs/jarvis/icon/make_icon.py 로 만든다 -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/jarvis_launcher_background" />
+    <foreground android:drawable="@mipmap/jarvis_launcher_foreground" />
+    <!-- API 33 미만은 이 줄을 건너뛴다 -->
+    <monochrome android:drawable="@mipmap/jarvis_launcher_monochrome" />
+</adaptive-icon>

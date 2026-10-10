@@ -95,6 +95,8 @@ fun ChatComposer(
     dictation: DictationState? = null,
     onDictationToggle: () -> Unit = {},
     onDictationCancel: () -> Unit = {},
+    /** Jarvis: the butler's own hint; null ⇒ the upstream 「message the agent」 text. */
+    placeholder: String? = null,
 ) {
     val focusRequester = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
@@ -166,7 +168,7 @@ fun ChatComposer(
                             Box {
                                 if (state.text.isEmpty()) {
                                     Text(
-                                        text = stringResource(R.string.chat_composer_placeholder),
+                                        text = placeholder ?: stringResource(R.string.chat_composer_placeholder),
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = MaterialTheme.hapi.hint,
                                         maxLines = 1,

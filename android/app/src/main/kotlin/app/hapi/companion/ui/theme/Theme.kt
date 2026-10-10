@@ -86,6 +86,7 @@ fun HapiTheme(
     CompositionLocalProvider(LocalHapiExtendedColors provides extendedColors) {
         MaterialTheme(
             colorScheme = colorScheme,
+            typography = ReadableTypography,
             content = content,
         )
     }

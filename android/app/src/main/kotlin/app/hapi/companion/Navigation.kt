@@ -75,6 +75,9 @@ import kotlinx.coroutines.withContext
 object Routes {
     const val HOME = "home"
 
+    /** Jarvis: root once paired — the butler's chat (feature/jarvis). */
+    const val BUTLER = "butler"
+
     /** Read-only chat (B-M2d2). */
     const val CHAT = "chat/{sessionId}"
 
@@ -160,7 +163,7 @@ fun HapiNavigation() {
     val registryState by graph.hubRegistry.state.collectAsState()
     val activeHubGraph by graph.activeHubGraph.collectAsState()
     val startDestination = remember {
-        if (graph.hubRegistry.activeHubUrl == null) Routes.PAIRING else Routes.HOME
+        if (graph.hubRegistry.activeHubUrl == null) Routes.PAIRING else Routes.BUTLER
     }
 
     // Silent re-auth gave up for good: back to pairing, with the reason.
@@ -193,9 +196,14 @@ fun HapiNavigation() {
         val sessionId = pendingOpenSession ?: return@LaunchedEffect
         graph.pendingOpenSessionId.value = null
         if (graph.hubRegistry.activeHubUrl != null) {
+            // Jarvis: the butler's own session is already the root screen.
+            if (sessionId == app.hapi.companion.feature.jarvis.currentButlerId(activeHubGraph)) {
+                navController.popBackStack(Routes.BUTLER, inclusive = false)
+                return@LaunchedEffect
+            }
             navController.navigate(Routes.chat(sessionId)) {
-                // Keep the stack shallow: back always lands on the list.
-                popUpTo(Routes.HOME)
+                // Keep the stack shallow: back always lands on the root.
+                popUpTo(Routes.BUTLER)
                 launchSingleTop = true
             }
         }
@@ -215,11 +223,16 @@ fun HapiNavigation() {
             navController.currentDestination?.route in
                 setOf(Routes.CHAT, Routes.FILES, Routes.FILE_VIEWER, Routes.SCRATCHLIST)
         ) {
-            navController.popBackStack(Routes.HOME, inclusive = false)
+            navController.popBackStack(Routes.BUTLER, inclusive = false)
         }
     }
 
     NavHost(navController = navController, startDestination = startDestination) {
+        composable(Routes.BUTLER) {
+            val hubGraph = activeHubGraph ?: return@composable
+            app.hapi.companion.feature.jarvis.ButlerRoute(graph, hubGraph, navController)
+        }
+
         composable(Routes.HOME) {
             val activeHubUrl = registryState.activeHubUrl ?: return@composable
             val hubGraph = activeHubGraph ?: return@composable
@@ -235,7 +248,14 @@ fun HapiNavigation() {
                 onSwitchHub = { hub -> scope.launch { graph.hubRegistry.setActiveHub(hub) } },
                 onPairAnotherHub = { navController.navigate(Routes.PAIRING) },
                 onSignOut = { scope.launch { graph.signOut(activeHubUrl) } },
-                onOpenSession = { sessionId -> navController.navigate(Routes.chat(sessionId)) },
+                onOpenSession = { sessionId ->
+                    // Jarvis: the butler opens as the root screen, not a second chat.
+                    if (sessionId == app.hapi.companion.feature.jarvis.currentButlerId(hubGraph)) {
+                        navController.popBackStack(Routes.BUTLER, inclusive = false)
+                    } else {
+                        navController.navigate(Routes.chat(sessionId))
+                    }
+                },
                 onNewSession = { navController.navigate(Routes.newSession()) },
                 onOpenSettings = { navController.navigate(Routes.SETTINGS) },
             )
@@ -342,6 +362,23 @@ fun HapiNavigation() {
                     FilesViewModelHolder(hubGraph, sessionId, filesStrings(filesContext))
                 },
             )
+            // Jarvis: the butler's files open as 「드라이브」 (folders + one search, no Changes tab).
+            if (sessionId == app.hapi.companion.feature.jarvis.currentButlerId(hubGraph)) {
+                val drive = viewModel<app.hapi.companion.feature.jarvis.drive.DriveViewModelHolder>(
+                    key = "drive:${hubGraph.hubUrl}:$sessionId",
+                    factory = viewModelFactory {
+                        app.hapi.companion.feature.jarvis.drive.DriveViewModelHolder(
+                            hubGraph, sessionId, app.hapi.companion.feature.jarvis.drive.contentSearchFor(filesContext),
+                        )
+                    },
+                )
+                app.hapi.companion.feature.jarvis.drive.DriveScreen(
+                    viewModel = drive.viewModel,
+                    onBack = { navController.popBackStack() },
+                    onOpenFile = { path -> navController.navigate(Routes.fileViewer(sessionId, path)) },
+                )
+                return@composable
+            }
             FilesScreen(
                 viewModel = holder.viewModel,
                 onBack = { navController.popBackStack() },
@@ -428,7 +465,7 @@ fun HapiNavigation() {
                     key = "chat:${hubGraph.hubUrl}:$sessionId",
                     factory = viewModelFactory { ChatViewModelHolder(hubGraph, sessionId, appContext) },
                 )
-            }
+            } ?: app.hapi.companion.feature.jarvis.butlerChatHolder(navController, hubGraph, sessionId)
             ScratchlistScreen(
                 viewModel = holder.viewModel,
                 media = remember(hubGraph, sessionId) {
@@ -473,9 +510,9 @@ fun HapiNavigation() {
                 onBack = { navController.popBackStack() },
                 onCreated = { sessionId ->
                     // Navigate-replace: the form pops so back from the new
-                    // chat lands on the session list, not a stale form.
+                    // chat lands where the form was opened, not a stale form.
                     navController.navigate(Routes.chat(sessionId)) {
-                        popUpTo(Routes.HOME)
+                        popUpTo(Routes.NEW_SESSION) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
@@ -578,7 +615,7 @@ private class SessionListViewModelHolder : ViewModel() {
 }
 
 /** Same shell for the per-session [ChatViewModel] (+ its dictation controller). */
-private class ChatViewModelHolder(
+internal class ChatViewModelHolder(
     hubGraph: HubGraph,
     sessionId: String,
     appContext: Context,
@@ -796,7 +833,7 @@ private fun NavigateHomeOnSuccess(navController: NavHostController, state: Pairi
     LaunchedEffect(state) {
         if (state is PairingUiState.Success) {
             graph.pairingNotice.value = null
-            navController.navigateClearingBackStack(Routes.HOME)
+            navController.navigateClearingBackStack(Routes.BUTLER)
         }
     }
 }

@@ -80,6 +80,7 @@ import app.hapi.companion.ui.markdown.LocalMarkdownLinkHandler
 import app.hapi.companion.ui.theme.hapi
 import java.io.File
 import kotlinx.coroutines.launch
+import androidx.lifecycle.repeatOnLifecycle
 
 /** Pending camera capture across rotation/process death: uri + scratch path. */
 private val CameraCaptureSaver = listSaver<CameraCapture?, String>(
@@ -110,6 +111,8 @@ internal fun ChatScreen(
     onOpenScratchlist: (() -> Unit)? = null,
     transcriptList: androidx.compose.foundation.lazy.LazyListState = androidx.compose.foundation.lazy.rememberLazyListState(),
     readingState: TranscriptReadingState = rememberTranscriptReadingState(viewModel.sessionId),
+    /** Jarvis: non-null ⇒ butler mode (no back arrow / gear; menu carries them). */
+    butlerMenu: app.hapi.companion.feature.chat.jarvis.ButlerMenu? = null,
 ) {
     val state by viewModel.uiState.collectAsState()
     val reconnecting by viewModel.reconnecting.collectAsState()
@@ -159,6 +162,26 @@ internal fun ChatScreen(
         }
     }
     val scope = rememberCoroutineScope()
+    // Jarvis 「화면 비우기」: the butler's view floor lives in prefs (one room across hand-overs).
+    val butlerMode = butlerMenu != null
+    val clearPrefs = androidx.compose.runtime.remember { app.hapi.companion.feature.chat.jarvis.ScreenClearPrefs(context) }
+    androidx.compose.runtime.LaunchedEffect(clearPrefs, butlerMode) {
+        if (butlerMode) clearPrefs.clearedThrough.collect(viewModel::setClearedThrough) else viewModel.setClearedThrough(null)
+    }
+    // Jarvis (step 19): the server's notices, re-read every minute while the butler is on screen.
+    if (butlerMode) {
+        val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current
+        androidx.compose.runtime.LaunchedEffect(lifecycle) {
+            val http = app.hapi.companion.feature.jarvis.EntranceHttp(context)
+            lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                while (true) {
+                    runCatching { http.get("/notices?since=0", app.hapi.companion.feature.chat.jarvis.NoticeList.serializer()) }
+                        .onSuccess { viewModel.setNotices(it.notices) }
+                    kotlinx.coroutines.delay(60_000)
+                }
+            }
+        }
+    }
     val micPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
@@ -276,16 +299,21 @@ internal fun ChatScreen(
             TopAppBar(
                 expandedHeight = toolbarHeight,
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    if (butlerMenu == null) IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.chat_back))
                     }
                 },
-                title = { ChatTitle(state.header, reconnecting, viewModel::retry) },
+                title = {
+                    // Jarvis: the butler keeps one name; no harness/model/machine line.
+                    val header = if (butlerMenu == null) state.header
+                        else state.header.copy(title = butlerMenu.title, subtitle = null)
+                    ChatTitle(header, reconnecting, viewModel::retry)
+                },
                 actions = {
                     // Two icons max (device feedback: four icons squeezed the
                     // title out) — gear for the frequent config switches,
                     // everything else in the overflow menu.
-                    IconButton(onClick = { configSheetOpen = true }) {
+                    if (butlerMenu == null) IconButton(onClick = { configSheetOpen = true }) {
                         Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.chat_open_settings))
                     }
                     val scratchlistCount by viewModel.scratchlistCount.collectAsState()
@@ -293,16 +321,28 @@ internal fun ChatScreen(
                         active = state.header.active,
                         onOpenFiles = onOpenFiles,
                         scratchlistCount = scratchlistCount,
-                        onOpenScratchlist = if (viewModel.scratchlistEnabled) onOpenScratchlist else null,
-                        onRename = { renameDialogOpen = true },
+                        onOpenScratchlist = if (viewModel.scratchlistEnabled && butlerMenu == null) onOpenScratchlist else null,
+                        filesLabel = if (butlerMenu != null) stringResource(R.string.jarvis_drive_title) else null,
+                        // Jarvis: the butler can't be renamed or deleted from its own screen —
+                        // the app finds it by its pin and name (주현님 10-09 「이름변경 삭제도 날려버려」).
+                        onRename = if (butlerMenu == null) ({ renameDialogOpen = true }) else null,
                         onReopen = viewModel::reopenSession,
-                        onDelete = { deleteDialogOpen = true },
+                        onDelete = if (butlerMenu == null) ({ deleteDialogOpen = true }) else null,
                         // Draft-level action, relocated from the composer's
                         // own overflow (one less button in the input bar).
-                        onParkDraft = if (viewModel.scratchlistEnabled && composerState.text.isNotBlank()) {
+                        onParkDraft = if (viewModel.scratchlistEnabled && butlerMenu == null && composerState.text.isNotBlank()) {
                             viewModel::parkComposerDraft
                         } else {
                             null
+                        },
+                        leadingItems = butlerMenu?.let { menu ->
+                            { close ->
+                                app.hapi.companion.feature.chat.jarvis.ButlerMenuItems(
+                                    menu,
+                                    close,
+                                    onClearScreen = { viewModel.clearPoint()?.let { point -> scope.launch { clearPrefs.set(point) } } },
+                                )
+                            }
                         },
                     )
                 },
@@ -323,6 +363,10 @@ internal fun ChatScreen(
                     if (!state.header.active && !state.isInitialLoading && !state.loadFailed) {
                         InactiveSessionBar(onReopen = viewModel::reopenSession)
                     }
+                    // Jarvis: thinking / tool / step / writing / done strip.
+                    app.hapi.companion.feature.chat.jarvis.ActivityStatusBar(
+                        snapshot = state.activity, basePath = state.basePath,
+                    )
                     QueuedMessagesBar(
                         rows = queuedRows,
                         onSteer = viewModel::steerQueuedMessage,
@@ -345,6 +389,7 @@ internal fun ChatScreen(
                         dictation = if (dictationAvailable) dictationState else null,
                         onDictationToggle = onDictationToggle,
                         onDictationCancel = { dictation?.cancel() },
+                        placeholder = if (butlerMenu != null) stringResource(R.string.jarvis_composer_placeholder) else null,
                     )
                 }
             }
@@ -365,13 +410,18 @@ internal fun ChatScreen(
                     when {
                         state.isInitialLoading -> InitialLoading()
                         state.loadFailed -> LoadFailed(onRetry = viewModel::retry)
-                        state.blocks.isEmpty() && !state.hasMore -> EmptyChat()
+                        state.blocks.isEmpty() && !state.hasMore && !state.screenCleared -> EmptyChat()
                         else -> ChatTranscript(
                             state = state, paging = historyPaging, jumpToken = jumpToken,
                             jumpingLatest = jumpingLatest,
                             onViewport = viewModel::readingViewportChanged,
                             onLayout = viewModel::historyLaidOut,
                             onRetryHistory = viewModel::loadOlder,
+                            onRestoreCleared = {
+                                scope.launch { clearPrefs.set(null) }
+                                viewModel.setClearedThrough(null)
+                                viewModel.loadOlder()
+                            },
                             onJumpToLatest = viewModel::jumpToLatest,
                             listState = transcriptList, readingState = readingState,
                         )
@@ -438,24 +488,31 @@ internal fun ChatScreen(
 @Composable
 private fun SessionOverflowMenu(
     active: Boolean,
-    onRename: () -> Unit,
+    /** null ⇒ row hidden (Jarvis butler screen). */
+    onRename: (() -> Unit)?,
     onReopen: () -> Unit,
-    onDelete: () -> Unit,
+    /** null ⇒ row hidden (Jarvis butler screen). */
+    onDelete: (() -> Unit)?,
     onOpenFiles: () -> Unit = {},
+    /** Jarvis: 「드라이브」 on the butler screen; null ⇒ the upstream label. */
+    filesLabel: String? = null,
     /** Entry-count suffix on the scratchlist row. */
     scratchlistCount: Int = 0,
     /** null ⇒ scratchlist row hidden (feature off / tests). */
     onOpenScratchlist: (() -> Unit)? = null,
     /** null ⇒ hidden (scratchlist off or empty composer). */
     onParkDraft: (() -> Unit)? = null,
+    /** Jarvis butler entries shown first; receives the menu's close action. */
+    leadingItems: (@Composable (close: () -> Unit) -> Unit)? = null,
 ) {
     var open by remember { mutableStateOf(false) }
     IconButton(onClick = { open = true }) {
         Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.chat_session_actions))
     }
     DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+        leadingItems?.invoke { open = false }
         DropdownMenuItem(
-            text = { Text(stringResource(R.string.chat_open_files)) },
+            text = { Text(filesLabel ?: stringResource(R.string.chat_open_files)) },
             leadingIcon = { Icon(FolderGlyph, contentDescription = null) },
             onClick = {
                 open = false
@@ -479,14 +536,17 @@ private fun SessionOverflowMenu(
                 },
             )
         }
-        HorizontalDivider()
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.sessions_action_rename)) },
-            onClick = {
-                open = false
-                onRename()
-            },
-        )
+        // Jarvis: no trailing divider when every action row below is hidden (butler, active).
+        if (onRename != null || onParkDraft != null || !active || onDelete != null) HorizontalDivider()
+        if (onRename != null) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.sessions_action_rename)) },
+                onClick = {
+                    open = false
+                    onRename()
+                },
+            )
+        }
         if (onParkDraft != null) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.chat_park_draft)) },
@@ -505,13 +565,15 @@ private fun SessionOverflowMenu(
                 },
             )
         }
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.sessions_action_delete), color = MaterialTheme.colorScheme.error) },
-            onClick = {
-                open = false
-                onDelete()
-            },
-        )
+        if (onDelete != null) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.sessions_action_delete), color = MaterialTheme.colorScheme.error) },
+                onClick = {
+                    open = false
+                    onDelete()
+                },
+            )
+        }
     }
 }
 

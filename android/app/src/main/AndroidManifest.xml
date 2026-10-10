@@ -5,6 +5,10 @@
     <!-- Everything the app does rides HTTPS to the paired hub. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Jarvis fork step 7: phone activity — the user grants usage access once in system settings. -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
 
     <!-- FCM push (B-M4a): OS notifications for permission requests / ready /
          task events. Requested at runtime (API 33+) once a hub is paired;
@@ -41,10 +45,10 @@
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_rules"
         android:dataExtractionRules="@xml/data_extraction_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/jarvis_launcher"
         android:label="@string/app_name"
         android:localeConfig="@xml/locales_config"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/jarvis_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.HapiCompanion"
         android:usesCleartextTraffic="false">
@@ -116,6 +120,38 @@
         </service>
 
         <!-- Notification action taps (Allow / Deny / Reply / Dismiss). -->
+        <!-- Jarvis 바탕화면 위젯 둘 (step 23) -->
+        <activity
+            android:name=".feature.jarvis.widget.DdayConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.HapiCompanion">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+        <receiver
+            android:name=".feature.jarvis.widget.DdayWidgetProvider"
+            android:exported="false"
+            android:label="@string/jarvis_widget_dday_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/jarvis_widget_dday_info" />
+        </receiver>
+        <receiver
+            android:name=".feature.jarvis.widget.TodoWidgetProvider"
+            android:exported="false"
+            android:label="@string/jarvis_widget_todo_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/jarvis_widget_todo_info" />
+        </receiver>
+
         <receiver
             android:name=".fcm.NotificationActionReceiver"
             android:exported="false" />

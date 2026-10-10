@@ -58,5 +58,7 @@ object NotificationChannels {
                 },
             )
         )
+        // Jarvis (step 15): the butler's own channel — heads-up + vibration.
+        app.hapi.companion.feature.jarvis.push.ButlerChannel.ensure(context, manager)
     }
 }

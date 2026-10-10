@@ -146,6 +146,10 @@ data class ChatUiState(
     val messagesVersion: Long = 0,
     val requiresLatestReset: Boolean = false,
     val processSteps: Map<String, Int> = emptyMap(),
+    /** Jarvis activity strip, from the unprojected blocks (projection drops group members). */
+    val activity: app.hapi.companion.feature.chat.jarvis.ActivitySnapshot? = null,
+    /** Jarvis 「화면 비우기」: older rows are hidden on purpose — the top row offers 「다시 보기」. */
+    val screenCleared: Boolean = false,
 )
 
 /** Composer bar state (M3a). */
@@ -371,6 +375,15 @@ class ChatViewModel(
     private var transcriptVisible = true
     internal val inspection = ChatInspectionState()
     private val transcriptProjection = TranscriptProjection()
+    /** Jarvis: sessions this one was handed over from, stitched above its start. */
+    private val handoffChain = app.hapi.companion.feature.chat.jarvis.HandoffChain(sessionId, api)
+
+    // Jarvis 「화면 비우기」 (step 12): a view floor; rows at or under it are not drawn.
+    private val clearedThrough = MutableStateFlow<Long?>(null)
+    // Jarvis 집사가 먼저 한 말 (step 19): server notices drawn between rows.
+    private val notices = MutableStateFlow<List<app.hapi.companion.feature.chat.jarvis.Notice>>(emptyList())
+    @Volatile private var loadedRows: List<WindowMessage> = emptyList()
+    @Volatile private var clearReached = false
     val reconnecting: StateFlow<Boolean> = sseEngine.reconnecting(subscriptionKey)
         .stateIn(scope, SharingStarted.Eagerly, false)
 
@@ -459,6 +472,9 @@ class ChatViewModel(
         val machines: List<Machine>,
         val detailLoadFailed: Boolean,
         val permissionOverrides: Map<String, PermissionRowOverride>,
+        val chain: app.hapi.companion.feature.chat.jarvis.HandoffChainState,
+        val clearedThrough: Long?,
+        val notices: List<app.hapi.companion.feature.chat.jarvis.Notice>,
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -472,6 +488,9 @@ class ChatViewModel(
                 machineStore.machines,
                 detailLoadFailed,
                 permissionOverrides,
+                handoffChain.state,
+                clearedThrough,
+                notices,
             ) { values: Array<Any?> -> pipelineInputs(values) }
         }
         // The web samples pipeline runs through React batching; here: emit the
@@ -577,6 +596,9 @@ class ChatViewModel(
             historyObserver = uiScope.launch {
                 store.state.collect { window ->
                     mutableHistoryPaging.value = mutableHistoryPaging.value.refreshAvailability(window.hasMore)
+                    if (!window.hasMore && window.epoch != null) {
+                        handoffChain.anchor(app.hapi.companion.feature.chat.jarvis.firstUserLocalIdOfRows(window.messages))
+                    }
                     val epoch = window.epoch
                     if (epoch != null) {
                         if (lastHistoryEpoch != null && lastHistoryEpoch != epoch) {
@@ -673,6 +695,19 @@ class ChatViewModel(
         }
     }
 
+    /** Jarvis 「화면 비우기」: the floor from the butler's view prefs (null = nothing hidden). */
+    fun setClearedThrough(value: Long?) {
+        clearedThrough.value = value
+    }
+
+    /** Jarvis: the server's notices for the butler screen (step 19). */
+    fun setNotices(value: List<app.hapi.companion.feature.chat.jarvis.Notice>) {
+        notices.value = value
+    }
+
+    /** Jarvis: floor for clearing now — the newest delivered row on hand. */
+    fun clearPoint(): Long? = app.hapi.companion.feature.chat.jarvis.clearPoint(loadedRows)
+
     /** Explicit retry/continue. Ordinary paging is driven by viewport coverage. */
     @MainThread
     fun loadOlder() {
@@ -731,7 +766,16 @@ class ChatViewModel(
 
     private fun pumpHistory() {
         val store = windowStore.value ?: return
+        // Jarvis: everything older than a 「화면 비우기」 floor stays hidden — don't fetch it.
+        if (clearReached) return
         val window = store.state.value
+        if (!window.hasMore) {
+            // Jarvis: past this session's start, keep reading the hand-over chain.
+            if (started && transcriptVisible && historyDemand && !mutableJumpingLatest.value && !window.isSyncingTail) {
+                handoffChain.requestMore(uiScope, workerContext, ::scheduleHistoryPump)
+            }
+            return
+        }
         if (!started || !transcriptVisible || mutableJumpingLatest.value || !historyDemand || !window.hasMore ||
             window.isSyncingTail || window.isLoadingMore || olderJob != null ||
             mutableHistoryPaging.value.phase != ChatHistoryPagingState.Phase.Idle) return
@@ -1347,7 +1391,7 @@ class ChatViewModel(
         opPending: Boolean,
         thinking: Boolean,
     ): List<QueuedRowUi> {
-        val queued = window.messages.filter { it.isQueuedForInvocation }
+        val queued = window.messages.filter { it.isQueuedForInvocation && !app.hapi.companion.feature.chat.jarvis.isServerTaggedLocalId(it.localId) }
         // Web `sortQueuedMessages`: immediate first (submission order), then
         // scheduled by fire time.
         val sorted = queued.sortedWith(
@@ -1720,6 +1764,9 @@ class ChatViewModel(
             machines = values[3] as List<Machine>,
             detailLoadFailed = values[4] as Boolean,
             permissionOverrides = values[5] as Map<String, PermissionRowOverride>,
+            chain = values[6] as app.hapi.companion.feature.chat.jarvis.HandoffChainState,
+            clearedThrough = values[7] as Long?,
+            notices = values[8] as List<app.hapi.companion.feature.chat.jarvis.Notice>,
         )
     }
 
@@ -1746,7 +1793,26 @@ class ChatViewModel(
 
         // Queued-not-yet-invoked rows belong to the composer bar, not the
         // thread — shared predicate with the window store, like the web.
-        val visibleMessages = window.messages.filter { !it.isQueuedForInvocation }
+        // Jarvis: once the session's start is on screen, hand-over ancestors
+        // go above it as one conversation (read-only rows).
+        val ancestors = if (window.hasMore) emptyList() else inputs.chain.messages
+        val loaded = ancestors + window.messages.filter { !it.isQueuedForInvocation }
+        loadedRows = loaded
+        // Jarvis 「화면 비우기」: rows at or under the floor are not drawn, and paging stops there.
+        val cleared = app.hapi.companion.feature.chat.jarvis.reachedClear(loaded, inputs.clearedThrough)
+        clearReached = cleared
+        val hasMore = !cleared && (
+            window.hasMore ||
+                inputs.chain.mayHaveMore { app.hapi.companion.feature.chat.jarvis.firstUserLocalIdOfRows(window.messages) }
+            )
+        val visibleMessages = app.hapi.companion.feature.chat.jarvis.withNotices(
+            app.hapi.companion.feature.chat.jarvis.dropHandoffNoise(
+                app.hapi.companion.feature.chat.jarvis.afterClear(loaded, inputs.clearedThrough),
+            ),
+            inputs.notices,
+            hasOlder = hasMore,
+            clearedThrough = inputs.clearedThrough,
+        )
 
         val normalized = ArrayList<NormalizedMessage>(visibleMessages.size)
         val seen = HashSet<String>(visibleMessages.size * 2)
@@ -1778,7 +1844,7 @@ class ChatViewModel(
         val reduced = reduceChatBlocks(normalized, agentState)
         val visibleBlocks = buildVisibleChatBlocks(
             reduced.blocks,
-            ToolGroupingOptions(hasMoreMessages = window.hasMore, previousGroups = previousGroups),
+            ToolGroupingOptions(hasMoreMessages = hasMore, previousGroups = previousGroups),
         )
         previousGroups = visibleBlocks.filterIsInstance<ToolGroupBlock>()
         inspection.update(visibleBlocks, window.epoch)
@@ -1800,16 +1866,18 @@ class ChatViewModel(
         // syncGeneration 0 = no tail sync has even begun (the moment between
         // open and syncTail) — still "loading", never a flash of empty state.
         val syncSettled = !window.isSyncingTail && window.syncGeneration > 0
+        val header = buildHeader(inputs)
         return ChatUiState(
             sessionId = sessionId,
-            header = buildHeader(inputs),
+            header = header,
+            activity = app.hapi.companion.feature.chat.jarvis.deriveActivity(visibleBlocks, header.thinking),
             flavor = inputs.detail?.metadata?.flavor ?: inputs.summary?.metadata?.flavor,
             basePath = inputs.detail?.metadata?.path ?: inputs.summary?.metadata?.path,
-            blocks = transcriptProjection.project(visibleBlocks),
+            blocks = transcriptProjection.project(visibleBlocks).filterNot { app.hapi.companion.feature.chat.jarvis.isHiddenTranscriptBlock(it) },
             processSteps = visibleBlocks.filterIsInstance<ToolCallBlock>().filter(::opensToolProcess)
                 .associate { it.id to it.children.size },
             permissionOverrides = inputs.permissionOverrides,
-            hasMore = window.hasMore,
+            hasMore = hasMore,
             isLoadingOlder = window.isLoadingMore,
             isSyncingTail = window.isSyncingTail,
             isInitialLoading = isEmpty && !syncSettled && window.warning == null,
@@ -1820,6 +1888,7 @@ class ChatViewModel(
             historyVersion = window.historyVersion,
             messagesVersion = window.messagesVersion,
             requiresLatestReset = window.requiresLatestReset,
+            screenCleared = cleared,
         )
     }
 

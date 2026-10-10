@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 할 일 위젯 날짜 알약 (step 25) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#33FFC857" />
+    <corners android:radius="999dp" />
+</shape>

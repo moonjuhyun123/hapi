@@ -72,6 +72,7 @@ class MainActivity : AppCompatActivity() {
             // (or re-trigger a notification navigation).
             handleBindIntent(intent)
             handleOpenSessionIntent(intent)
+            handleOpenCalendarIntent(intent)
         }
         setContent {
             // Follow-system default renders for the first frames while the
@@ -98,6 +99,13 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         handleBindIntent(intent)
         handleOpenSessionIntent(intent)
+        handleOpenCalendarIntent(intent)
+    }
+
+    /** Jarvis widget tap (step 23): open the calendar on the butler screen. */
+    private fun handleOpenCalendarIntent(intent: Intent?) {
+        if (intent?.action != app.hapi.companion.feature.jarvis.widget.ACTION_OPEN_CALENDAR) return
+        app.hapi.companion.feature.jarvis.widget.OpenCalendarRequest.pending.value = true
     }
 
     private fun handleBindIntent(intent: Intent?) {
