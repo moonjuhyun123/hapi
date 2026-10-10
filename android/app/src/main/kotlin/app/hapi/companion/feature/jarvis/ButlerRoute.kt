@@ -141,7 +141,10 @@ internal fun ButlerRoute(graph: AppGraph, hubGraph: HubGraph, navController: Nav
 
     // Step 7: phone activity rides along with the butler — schedule on open, settings in ⋮.
     val context = LocalContext.current
-    LaunchedEffect(Unit) { PhoneActivityWorker.onAppOpened(context) }
+    LaunchedEffect(Unit) {
+        PhoneActivityWorker.onAppOpened(context)
+        app.hapi.companion.feature.jarvis.watch.ServerWatchWorker.onAppOpened(context) // step 20: 비상 확인
+    }
     var phoneActivityOpen by remember { mutableStateOf(false) }
     var workoutOpen by rememberSaveable { mutableStateOf(false) }
     var calendarOpen by rememberSaveable { mutableStateOf(false) }

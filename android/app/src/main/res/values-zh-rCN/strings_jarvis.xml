@@ -89,4 +89,8 @@
     <string name="jarvis_calendar_delete">删除</string>
     <string name="jarvis_calendar_cancel">取消</string>
     <string name="jarvis_calendar_done">做过的</string>
+    <!-- 비상 확인 (step 20) · 깨우기 알림 (step 21) -->
+    <string name="jarvis_watch_down">无法连接服务器 — 管家现在可能无法回复。</string>
+    <string name="jarvis_watch_back">已重新连接服务器。</string>
+    <string name="jarvis_notice_fallback">管家有新消息。</string>
 </resources>

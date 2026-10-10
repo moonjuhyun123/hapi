@@ -89,4 +89,8 @@
     <string name="jarvis_calendar_delete">Delete</string>
     <string name="jarvis_calendar_cancel">Cancel</string>
     <string name="jarvis_calendar_done">Done</string>
+    <!-- 비상 확인 (step 20) · 깨우기 알림 (step 21) -->
+    <string name="jarvis_watch_down">Can\'t reach the server — the butler may not be able to answer right now.</string>
+    <string name="jarvis_watch_back">Server reachable again.</string>
+    <string name="jarvis_notice_fallback">There\'s news from the butler.</string>
 </resources>

@@ -89,4 +89,8 @@
     <string name="jarvis_calendar_delete">지우기</string>
     <string name="jarvis_calendar_cancel">취소</string>
     <string name="jarvis_calendar_done">한 것</string>
+    <!-- 비상 확인 (step 20) · 깨우기 알림 (step 21) -->
+    <string name="jarvis_watch_down">서버에 닿지 않아요 — 지금 집사가 답을 못 할 수 있어요.</string>
+    <string name="jarvis_watch_back">서버에 다시 닿았어요.</string>
+    <string name="jarvis_notice_fallback">집사 소식이 있습니다.</string>
 </resources>

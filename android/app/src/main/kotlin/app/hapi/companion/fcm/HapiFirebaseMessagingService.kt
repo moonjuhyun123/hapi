@@ -55,7 +55,23 @@ class HapiFirebaseMessagingService : FirebaseMessagingService() {
             asks = context.getString(app.hapi.companion.R.string.jarvis_push_asks),
             permission = context.getString(app.hapi.companion.R.string.jarvis_push_permission),
         )
-        val shown = app.hapi.companion.feature.jarvis.push.butlerPush(payload, latest, labels) ?: return
+        // Jarvis 깨우기 알림 (step 21, 정본 9장 [새-12]): the server sends only 「새 소식 있음」 —
+        // no text through Google. The words are fetched from our own entrance here.
+        val woken = if (serverNotice && payload.body.isNullOrBlank()) {
+            val text = kotlinx.coroutines.runBlocking {
+                kotlinx.coroutines.withTimeoutOrNull(8_000) {
+                    runCatching {
+                        app.hapi.companion.feature.jarvis.EntranceHttp(this@HapiFirebaseMessagingService)
+                            .get("/notices?since=${System.currentTimeMillis() - 3_600_000}", app.hapi.companion.feature.chat.jarvis.NoticeList.serializer())
+                            .notices.maxByOrNull { it.at }?.text
+                    }.getOrNull()
+                }
+            }
+            payload.copy(body = text ?: context.getString(app.hapi.companion.R.string.jarvis_notice_fallback))
+        } else {
+            payload
+        }
+        val shown = app.hapi.companion.feature.jarvis.push.butlerPush(woken, latest, labels) ?: return
         PushNotifications.show(context, shown, app.hapi.companion.feature.jarvis.push.ButlerChannel.ID)
     }
 }
