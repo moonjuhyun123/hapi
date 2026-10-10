@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 할 일 5×2 (step 23): 다섯 줄 = D-n · (시각) 제목. 줄 수는 서버가 정한다(cal.widget limit) -->
+<!-- 할 일 5×2 (step 23·25): 다섯 줄 = D-n · 날짜 알약 · (시각) 제목. 줄 수는 서버가 정한다(cal.widget limit) -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/jarvis_widget_root"
     android:layout_width="match_parent"
@@ -30,11 +30,24 @@
 
         <TextView
             android:id="@+id/jarvis_todo_label0"
-            android:layout_width="64dp"
+            android:layout_width="56dp"
             android:layout_height="wrap_content"
             android:textColor="#FFFFC857"
             android:textSize="13sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/jarvis_todo_day0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/jarvis_widget_pill"
+            android:paddingStart="8dp"
+            android:paddingTop="1dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="1dp"
+            android:textColor="#FFFFC857"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/jarvis_todo_text0"
@@ -56,11 +69,24 @@
 
         <TextView
             android:id="@+id/jarvis_todo_label1"
-            android:layout_width="64dp"
+            android:layout_width="56dp"
             android:layout_height="wrap_content"
             android:textColor="#FFFFC857"
             android:textSize="13sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/jarvis_todo_day1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/jarvis_widget_pill"
+            android:paddingStart="8dp"
+            android:paddingTop="1dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="1dp"
+            android:textColor="#FFFFC857"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/jarvis_todo_text1"
@@ -82,11 +108,24 @@
 
         <TextView
             android:id="@+id/jarvis_todo_label2"
-            android:layout_width="64dp"
+            android:layout_width="56dp"
             android:layout_height="wrap_content"
             android:textColor="#FFFFC857"
             android:textSize="13sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/jarvis_todo_day2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/jarvis_widget_pill"
+            android:paddingStart="8dp"
+            android:paddingTop="1dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="1dp"
+            android:textColor="#FFFFC857"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/jarvis_todo_text2"
@@ -108,11 +147,24 @@
 
         <TextView
             android:id="@+id/jarvis_todo_label3"
-            android:layout_width="64dp"
+            android:layout_width="56dp"
             android:layout_height="wrap_content"
             android:textColor="#FFFFC857"
             android:textSize="13sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/jarvis_todo_day3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/jarvis_widget_pill"
+            android:paddingStart="8dp"
+            android:paddingTop="1dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="1dp"
+            android:textColor="#FFFFC857"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/jarvis_todo_text3"
@@ -134,11 +186,24 @@
 
         <TextView
             android:id="@+id/jarvis_todo_label4"
-            android:layout_width="64dp"
+            android:layout_width="56dp"
             android:layout_height="wrap_content"
             android:textColor="#FFFFC857"
             android:textSize="13sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/jarvis_todo_day4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/jarvis_widget_pill"
+            android:paddingStart="8dp"
+            android:paddingTop="1dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="1dp"
+            android:textColor="#FFFFC857"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/jarvis_todo_text4"

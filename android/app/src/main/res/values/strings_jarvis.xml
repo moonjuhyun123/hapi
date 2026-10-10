@@ -102,4 +102,7 @@
     <string name="jarvis_widget_no_dday">No D-day set</string>
     <string name="jarvis_widget_no_server">Open 「⋮ Phone activity」 to set the server</string>
     <string name="jarvis_calendar_dday">Show on D-day widget</string>
+    <string name="jarvis_widget_pick_title">Pick the D-day</string>
+    <string name="jarvis_widget_pick_default">Nearest event marked D-day (default)</string>
+    <string name="jarvis_widget_pick_failed">Can\'t load events — check 「⋮ Phone activity」</string>
 </resources>

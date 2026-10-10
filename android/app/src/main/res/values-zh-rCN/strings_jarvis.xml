@@ -102,4 +102,7 @@
     <string name="jarvis_widget_no_dday">没有倒计时</string>
     <string name="jarvis_widget_no_server">请在 ⋮ 手机活动 中设置服务器</string>
     <string name="jarvis_calendar_dday">在倒计时小组件显示</string>
+    <string name="jarvis_widget_pick_title">选择倒计时日程</string>
+    <string name="jarvis_widget_pick_default">最近的标记日程（默认）</string>
+    <string name="jarvis_widget_pick_failed">无法加载日程 — 请检查 ⋮ 手机活动</string>
 </resources>

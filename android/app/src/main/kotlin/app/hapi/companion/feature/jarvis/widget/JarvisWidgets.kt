@@ -50,20 +50,34 @@ data class WidgetItem(
     val label: String,
 )
 
+/** Every event of the coming year with its D-n — the D-day picker's list (step 25). */
 @Serializable
-data class WidgetData(val today: String = "", val dday: WidgetDday? = null, val items: List<WidgetItem> = emptyList())
+data class WidgetEvent(val id: String, val title: String, val date: String, val day: String = "", val label: String)
 
-/** One row of the to-do widget: 「D-6」 and 「10/16 금 08:00 보컬」. */
-fun todoRowText(item: WidgetItem): String = listOfNotNull(item.day, item.time, item.title).joinToString(" ")
+@Serializable
+data class WidgetData(
+    val today: String = "",
+    val dday: WidgetDday? = null,
+    val items: List<WidgetItem> = emptyList(),
+    val events: List<WidgetEvent> = emptyList(),
+)
+
+/** What one D-day widget shows: the event picked for it, else the nearest marked one. */
+fun ddayFor(data: WidgetData?, pickedId: String?): WidgetDday? =
+    pickedId?.let { id -> data?.events?.firstOrNull { it.id == id } }?.let { WidgetDday(it.title, it.date, it.label) }
+        ?: data?.dday
+
+/** One row of the to-do widget: 「D-6」 · pill 「10/16 금」 · 「08:00 보컬」. */
+fun todoRowText(item: WidgetItem): String = listOfNotNull(item.time, item.title).joinToString(" ")
 
 const val TODO_ROWS = 5
 
-private val json = Json { ignoreUnknownKeys = true }
+private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 private const val PREFS = "jarvis_widget"
 private const val KEY_DATA = "data"
 const val ACTION_OPEN_CALENDAR = "app.hapi.companion.jarvis.OPEN_CALENDAR"
 
-private fun cached(context: Context): WidgetData? =
+internal fun cached(context: Context): WidgetData? =
     context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_DATA, null)
         ?.let { runCatching { json.decodeFromString(WidgetData.serializer(), it) }.getOrNull() }
 
@@ -77,6 +91,21 @@ private fun openCalendar(context: Context): PendingIntent = PendingIntent.getAct
 /** Widget tap → MainActivity sets this → the butler screen opens the calendar once. */
 object OpenCalendarRequest {
     val pending = kotlinx.coroutines.flow.MutableStateFlow(false)
+}
+
+internal fun pickedFor(context: Context, widgetId: Int): String? =
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("dday_$widgetId", null)
+
+internal fun savePick(context: Context, widgetId: Int, eventId: String?) {
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit {
+        if (eventId == null) remove("dday_$widgetId") else putString("dday_$widgetId", eventId)
+    }
+}
+
+internal fun saveCache(context: Context, data: WidgetData) {
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit {
+        putString(KEY_DATA, json.encodeToString(WidgetData.serializer(), data))
+    }
 }
 
 object JarvisWidgets {
@@ -105,16 +134,16 @@ object JarvisWidgets {
         val manager = AppWidgetManager.getInstance(context)
         val data = cached(context)
         manager.getAppWidgetIds(ComponentName(context, DdayWidgetProvider::class.java)).forEach {
-            manager.updateAppWidget(it, ddayViews(context, data))
+            manager.updateAppWidget(it, ddayViews(context, data, pickedFor(context, it)))
         }
         manager.getAppWidgetIds(ComponentName(context, TodoWidgetProvider::class.java)).forEach {
             manager.updateAppWidget(it, todoViews(context, data))
         }
     }
 
-    private fun ddayViews(context: Context, data: WidgetData?): RemoteViews =
+    private fun ddayViews(context: Context, data: WidgetData?, pickedId: String?): RemoteViews =
         RemoteViews(context.packageName, R.layout.jarvis_widget_dday).apply {
-            val d = data?.dday
+            val d = ddayFor(data, pickedId)
             setTextViewText(R.id.jarvis_dday_title, d?.title ?: context.getString(if (data == null) R.string.jarvis_widget_no_server else R.string.jarvis_widget_no_dday))
             setTextViewText(R.id.jarvis_dday_label, d?.label ?: "")
             setOnClickPendingIntent(R.id.jarvis_widget_root, openCalendar(context))
@@ -122,6 +151,7 @@ object JarvisWidgets {
 
     private val ROW = intArrayOf(R.id.jarvis_todo_row0, R.id.jarvis_todo_row1, R.id.jarvis_todo_row2, R.id.jarvis_todo_row3, R.id.jarvis_todo_row4)
     private val LABEL = intArrayOf(R.id.jarvis_todo_label0, R.id.jarvis_todo_label1, R.id.jarvis_todo_label2, R.id.jarvis_todo_label3, R.id.jarvis_todo_label4)
+    private val DAY = intArrayOf(R.id.jarvis_todo_day0, R.id.jarvis_todo_day1, R.id.jarvis_todo_day2, R.id.jarvis_todo_day3, R.id.jarvis_todo_day4)
     private val TEXT = intArrayOf(R.id.jarvis_todo_text0, R.id.jarvis_todo_text1, R.id.jarvis_todo_text2, R.id.jarvis_todo_text3, R.id.jarvis_todo_text4)
 
     private fun todoViews(context: Context, data: WidgetData?): RemoteViews =
@@ -134,6 +164,7 @@ object JarvisWidgets {
                 val item = items.getOrNull(i)
                 setViewVisibility(ROW[i], if (item == null) View.GONE else View.VISIBLE)
                 setTextViewText(LABEL[i], item?.label ?: "")
+                setTextViewText(DAY[i], item?.day ?: "")
                 setTextViewText(TEXT[i], item?.let(::todoRowText) ?: "")
             }
             setOnClickPendingIntent(R.id.jarvis_widget_root, openCalendar(context))
@@ -147,9 +178,7 @@ class WidgetRefreshWorker(context: Context, params: WorkerParameters) : Coroutin
         if (http.entrance() != null) {
             try {
                 val data = http.get("/calendar/widget", WidgetData.serializer())
-                ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit {
-                    putString(KEY_DATA, json.encodeToString(WidgetData.serializer(), data))
-                }
+                saveCache(ctx, data)
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {
@@ -169,6 +198,10 @@ open class JarvisWidgetProvider : AppWidgetProvider() {
     }
 }
 
-class DdayWidgetProvider : JarvisWidgetProvider()
+class DdayWidgetProvider : JarvisWidgetProvider() {
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        appWidgetIds.forEach { savePick(context, it, null) }
+    }
+}
 
 class TodoWidgetProvider : JarvisWidgetProvider()

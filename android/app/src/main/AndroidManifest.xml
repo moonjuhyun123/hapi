@@ -121,6 +121,14 @@
 
         <!-- Notification action taps (Allow / Deny / Reply / Dismiss). -->
         <!-- Jarvis 바탕화면 위젯 둘 (step 23) -->
+        <activity
+            android:name=".feature.jarvis.widget.DdayConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.HapiCompanion">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
         <receiver
             android:name=".feature.jarvis.widget.DdayWidgetProvider"
             android:exported="false"

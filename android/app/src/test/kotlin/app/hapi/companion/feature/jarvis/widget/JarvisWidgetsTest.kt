@@ -9,8 +9,8 @@ class JarvisWidgetsTest {
     private val json = Json { ignoreUnknownKeys = true }
 
     @Test fun rowShowsTimeOnlyWhenThere() {
-        assertEquals("10/16 금 08:00 보컬", todoRowText(WidgetItem("일정", "2026-10-16", "10/16 금", "08:00", "보컬", "D-6")))
-        assertEquals("10/23 금 창경", todoRowText(WidgetItem("일정", "2026-10-23", "10/23 금", null, "창경", "D-13")))
+        assertEquals("08:00 보컬", todoRowText(WidgetItem("일정", "2026-10-16", "10/16 금", "08:00", "보컬", "D-6")))
+        assertEquals("창경", todoRowText(WidgetItem("일정", "2026-10-23", "10/23 금", null, "창경", "D-13")))
     }
 
     @Test fun readsServerShape() {
@@ -23,5 +23,15 @@ class JarvisWidgetsTest {
 
     @Test fun noDdayIsNull() {
         assertNull(json.decodeFromString(WidgetData.serializer(), """{"today":"2026-10-10","dday":null,"items":[]}""").dday)
+    }
+
+    @Test fun pickedEventWinsElseMarked() {
+        val data = WidgetData(
+            dday = WidgetDday("Adsp 시험", "2026-10-31", "D-21"),
+            events = listOf(WidgetEvent("e2", "보컬", "2026-10-16", "10/16 금", "D-6")),
+        )
+        assertEquals("보컬", ddayFor(data, "e2")?.title)
+        assertEquals("Adsp 시험", ddayFor(data, null)?.title)
+        assertEquals("Adsp 시험", ddayFor(data, "gone")?.title) // picked event deleted → fall back
     }
 }
