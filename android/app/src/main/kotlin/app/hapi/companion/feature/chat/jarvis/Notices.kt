@@ -24,6 +24,14 @@ data class NoticeList(val notices: List<Notice> = emptyList())
 
 const val NOTICE_ID_PREFIX = "jarvis-notice-"
 
+private val HM = java.time.format.DateTimeFormatter.ofPattern("M/d HH:mm")
+
+/** Each notice starts with its own header line, so back-to-back notices don't run together. */
+fun noticeText(n: Notice): String {
+    val at = java.time.Instant.ofEpochMilli(n.at).atZone(java.time.ZoneId.of("Asia/Seoul"))
+    return "**🔔 ${HM.format(at)}**\n\n${n.text}"
+}
+
 /** A notice as an agent row the normal pipeline draws as the butler's words. */
 fun noticeRow(n: Notice): WindowMessage = WindowMessage(
     DecryptedMessage(
@@ -33,7 +41,7 @@ fun noticeRow(n: Notice): WindowMessage = WindowMessage(
             put("role", "agent")
             putJsonObject("content") {
                 put("type", "codex")
-                putJsonObject("data") { put("type", "message"); put("message", n.text) }
+                putJsonObject("data") { put("type", "message"); put("message", noticeText(n)) }
             }
         },
     ),
