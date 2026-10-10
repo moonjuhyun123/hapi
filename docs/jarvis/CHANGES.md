@@ -251,6 +251,7 @@
    - 캘린더 일정 고치기 화면 맨 아래 「D-day 위젯에 띄우기」 스위치(`CalEvent.dday`·`EventDraft.dday`, 저장 때 늘 보냄). 여럿 켜면 가장 가까운 것이 뜬다.
    - 할 일 줄 = `D-6 │ 10/16 금 08:00 보컬` — 날짜 글자(`day`)도 서버(`cal.widget`)가 쓴다.
    - 시험: `CalendarModelTest` 본문 키에 `dday` · `JarvisWidgetsTest` 줄 글자.
+   - 고침(같은 날): 표시 전 일정은 서버가 `dday: null` 을 줘서 캘린더가 「읽기 실패」 — 서버가 늘 참·거짓으로 주고, 입구 읽기도 `coerceInputValues`(null → 기본값).
 
 ## 새 라이브러리
 

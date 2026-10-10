@@ -48,7 +48,7 @@ internal class EntranceHttp(context: Context) {
 
     private companion object {
         val JSON_TYPE = "application/json; charset=utf-8".toMediaType()
-        val json = Json { ignoreUnknownKeys = true }
+        val json = Json { ignoreUnknownKeys = true; coerceInputValues = true } // step 24: 서버 칸이 null 이어도 기본값으로
         val client by lazy { OkHttpClient.Builder().callTimeout(20, TimeUnit.SECONDS).build() }
     }
 }
