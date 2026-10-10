@@ -22,19 +22,23 @@ private val HM = DateTimeFormatter.ofPattern("M/d HH:mm")
 /** True for a server notice row (step 19) — drawn as its own card, not running into the butler's words. */
 fun isNoticeBlock(block: AgentTextBlock): Boolean = block.id.startsWith(NOTICE_ID_PREFIX)
 
-/** A server notice as a card: 「🔔 알림 · 시각」 header, the notice text below. */
+/**
+ * Every butler message as its own card (주현님 10-10 「모든 말을 이렇게 따로 카드로」): header
+ * 「집사 · 시각」, or 「🔔 알림 · 시각」 for a server notice (tinted stronger), the text below.
+ */
 @Composable
-fun NoticeCard(block: AgentTextBlock, modifier: Modifier = Modifier) {
+fun ButlerCard(block: AgentTextBlock, modifier: Modifier = Modifier) {
+    val notice = isNoticeBlock(block)
     Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f),
+        color = if (notice) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
         shape = RoundedCornerShape(14.dp),
         modifier = modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
             Text(
-                "🔔 알림 · " + HM.format(Instant.ofEpochMilli(block.createdAt).atZone(ZoneId.of("Asia/Seoul"))),
+                (if (notice) "🔔 알림 · " else "집사 · ") + HM.format(Instant.ofEpochMilli(block.createdAt).atZone(ZoneId.of("Asia/Seoul"))),
                 fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                color = if (notice) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 4.dp),
             )
             AgentTextBlockView(block)
