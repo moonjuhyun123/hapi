@@ -24,9 +24,12 @@ interface CalendarGateway {
 }
 
 internal class HttpCalendarGateway(context: Context) : CalendarGateway {
+    private val appContext = context.applicationContext
     private val http = EntranceHttp(context)
     override suspend fun month(ym: YearMonth): CalMonth = http.get("/calendar/month?ym=$ym", CalMonth.serializer())
-    override suspend fun save(body: JsonObject): CalMonth = http.post("/calendar/event", body, CalMonth.serializer())
+    override suspend fun save(body: JsonObject): CalMonth =
+        http.post("/calendar/event", body, CalMonth.serializer())
+            .also { app.hapi.companion.feature.jarvis.widget.JarvisWidgets.refreshNow(appContext) } // step 23
 }
 
 val SEOUL: ZoneId = ZoneId.of("Asia/Seoul")

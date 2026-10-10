@@ -93,4 +93,12 @@
     <string name="jarvis_watch_down">서버에 닿지 않아요 — 지금 집사가 답을 못 할 수 있어요.</string>
     <string name="jarvis_watch_back">서버에 다시 닿았어요.</string>
     <string name="jarvis_notice_fallback">집사 소식이 있습니다.</string>
+    <!-- 바탕화면 위젯 (step 23) -->
+    <string name="jarvis_widget_dday_name">집사 · D-day</string>
+    <string name="jarvis_widget_dday_desc">디데이로 표시한 가장 가까운 일정</string>
+    <string name="jarvis_widget_todo_name">집사 · 할 일</string>
+    <string name="jarvis_widget_todo_desc">다가오는 할 일과 일정(D-n)</string>
+    <string name="jarvis_widget_empty">다가오는 일이 없어요</string>
+    <string name="jarvis_widget_no_dday">디데이 없음</string>
+    <string name="jarvis_widget_no_server">⋮ 폰 활동에서 서버를 넣어 주세요</string>
 </resources>

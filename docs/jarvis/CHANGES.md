@@ -239,6 +239,13 @@
    - 손으로 띄워 세션이 끊기면 같이 죽던 여섯을 사용자 유닛으로: `hapi-hub` · `hapi-runner`(`HAPI_CLAUDE_PATH=claude-hapi` 유닛에 박음) · `hapi-tunnel` · `hapi-phone-activity`(3017) · `hapi-drive`(3018) · `hapi-entrance`(3019). 로그 `~/.hapi/logs/<유닛>.log`. 옮기는 동안 집사 세션 안 끊김.
    - 시제품이다 — 새 집(M7)에선 허브가 `hub` 컨테이너, 입구들은 코어 조각 API 로 바뀐다(정본 [새-62][새-65]).
 
+23. **바탕화면 위젯 둘 — D-day 2×1 · 할 일 5×2 (23단계, 이 서버 — 2026-10-10)**
+   - 주현님 「캘린더 만든 거 위젯으로도」·「D-day 2×1 짜리랑 할 일 5×2」. 새 라이브러리 없이 안드로이드 기본 위젯(RemoteViews).
+   - 앱은 계산하지 않는다: 입구 `/calendar/widget`(`~/lab/v2/calendar/cal.py widget`)이 D-day 일정(일정에 `dday` 표시한 것 중 가장 가까운 것)·다섯 줄(오늘부터 30일, 일정 + 기한 할 일, 오늘 이미 끝난 시간 일정은 뺌)·「D-n」 글자를 다 정해 준다. 디데이 표시는 `cal.py add|edit … --dday`(첫 표시: Adsp 시험). 앱 캘린더 화면이 일정을 고쳐도 `dday` 는 남는다(서버가 이어 받음).
+   - 갱신: 30분마다 · 위젯을 놓을 때 · 앱 캘린더가 저장한 직후. 못 받으면 마지막 값을 그대로 둔다. 누르면 캘린더 화면이 열린다(`ACTION_OPEN_CALENDAR` → 집사 화면이 캘린더를 띄움).
+   - `feature/jarvis/widget/JarvisWidgets.kt` · `res/layout/jarvis_widget_{dday,todo}.xml` · `res/xml/jarvis_widget_{dday,todo}_info.xml`.
+   - 시험: `JarvisWidgetsTest` 3개. 린트 경고 +4 = `targetCellWidth/Height`(API 31+ 속성, 낮은 판에선 무시돼 그대로 둠).
+
 ## 새 라이브러리
 
 없습니다.

@@ -93,4 +93,12 @@
     <string name="jarvis_watch_down">无法连接服务器 — 管家现在可能无法回复。</string>
     <string name="jarvis_watch_back">已重新连接服务器。</string>
     <string name="jarvis_notice_fallback">管家有新消息。</string>
+    <!-- 바탕화면 위젯 (step 23) -->
+    <string name="jarvis_widget_dday_name">管家 · 倒计时</string>
+    <string name="jarvis_widget_dday_desc">最近的倒计时日程</string>
+    <string name="jarvis_widget_todo_name">管家 · 待办</string>
+    <string name="jarvis_widget_todo_desc">即将到来的待办与日程</string>
+    <string name="jarvis_widget_empty">暂无安排</string>
+    <string name="jarvis_widget_no_dday">没有倒计时</string>
+    <string name="jarvis_widget_no_server">请在 ⋮ 手机活动 中设置服务器</string>
 </resources>

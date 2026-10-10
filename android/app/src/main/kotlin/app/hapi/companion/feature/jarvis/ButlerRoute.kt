@@ -148,6 +148,14 @@ internal fun ButlerRoute(graph: AppGraph, hubGraph: HubGraph, navController: Nav
     var phoneActivityOpen by remember { mutableStateOf(false) }
     var workoutOpen by rememberSaveable { mutableStateOf(false) }
     var calendarOpen by rememberSaveable { mutableStateOf(false) }
+    // step 23: a widget tap asks for the calendar
+    val openCalendarAsked by app.hapi.companion.feature.jarvis.widget.OpenCalendarRequest.pending.collectAsState()
+    LaunchedEffect(openCalendarAsked) {
+        if (openCalendarAsked) {
+            calendarOpen = true
+            app.hapi.companion.feature.jarvis.widget.OpenCalendarRequest.pending.value = false
+        }
+    }
     if (phoneActivityOpen) PhoneActivityDialog(onDismiss = { phoneActivityOpen = false })
 
     val butlerTitle = stringResource(R.string.jarvis_butler_title)

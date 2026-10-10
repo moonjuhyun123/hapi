@@ -93,4 +93,12 @@
     <string name="jarvis_watch_down">Can\'t reach the server — the butler may not be able to answer right now.</string>
     <string name="jarvis_watch_back">Server reachable again.</string>
     <string name="jarvis_notice_fallback">There\'s news from the butler.</string>
+    <!-- 바탕화면 위젯 (step 23) -->
+    <string name="jarvis_widget_dday_name">Butler · D-day</string>
+    <string name="jarvis_widget_dday_desc">The nearest event marked D-day</string>
+    <string name="jarvis_widget_todo_name">Butler · To do</string>
+    <string name="jarvis_widget_todo_desc">Upcoming to-dos and events with D-n</string>
+    <string name="jarvis_widget_empty">Nothing coming up</string>
+    <string name="jarvis_widget_no_dday">No D-day set</string>
+    <string name="jarvis_widget_no_server">Open 「⋮ Phone activity」 to set the server</string>
 </resources>

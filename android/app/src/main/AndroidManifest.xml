@@ -120,6 +120,30 @@
         </service>
 
         <!-- Notification action taps (Allow / Deny / Reply / Dismiss). -->
+        <!-- Jarvis 바탕화면 위젯 둘 (step 23) -->
+        <receiver
+            android:name=".feature.jarvis.widget.DdayWidgetProvider"
+            android:exported="false"
+            android:label="@string/jarvis_widget_dday_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/jarvis_widget_dday_info" />
+        </receiver>
+        <receiver
+            android:name=".feature.jarvis.widget.TodoWidgetProvider"
+            android:exported="false"
+            android:label="@string/jarvis_widget_todo_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/jarvis_widget_todo_info" />
+        </receiver>
+
         <receiver
             android:name=".fcm.NotificationActionReceiver"
             android:exported="false" />
