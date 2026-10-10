@@ -34,7 +34,10 @@ class HapiFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         val graph = appGraph
         val payload = graph.pushMessageDecoder.decode(message.data) ?: return
-        if (shouldSuppressPush(graph.foreground, graph.openChatSessionId.value, payload.sessionId)) {
+        // Jarvis: the server's own notices (briefing, reminders — `jarvis-notice`) are not chat
+        // replies, so they show even while the butler chat is open (step 19).
+        val serverNotice = payload.rawType == "jarvis-notice"
+        if (!serverNotice && shouldSuppressPush(graph.foreground, graph.openChatSessionId.value, payload.sessionId)) {
             return
         }
         // In-app language (B-M5a): notification strings resolve from this

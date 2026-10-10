@@ -80,6 +80,7 @@ import app.hapi.companion.ui.markdown.LocalMarkdownLinkHandler
 import app.hapi.companion.ui.theme.hapi
 import java.io.File
 import kotlinx.coroutines.launch
+import androidx.lifecycle.repeatOnLifecycle
 
 /** Pending camera capture across rotation/process death: uri + scratch path. */
 private val CameraCaptureSaver = listSaver<CameraCapture?, String>(
@@ -166,6 +167,20 @@ internal fun ChatScreen(
     val clearPrefs = androidx.compose.runtime.remember { app.hapi.companion.feature.chat.jarvis.ScreenClearPrefs(context) }
     androidx.compose.runtime.LaunchedEffect(clearPrefs, butlerMode) {
         if (butlerMode) clearPrefs.clearedThrough.collect(viewModel::setClearedThrough) else viewModel.setClearedThrough(null)
+    }
+    // Jarvis (step 19): the server's notices, re-read every minute while the butler is on screen.
+    if (butlerMode) {
+        val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current
+        androidx.compose.runtime.LaunchedEffect(lifecycle) {
+            val http = app.hapi.companion.feature.jarvis.EntranceHttp(context)
+            lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                while (true) {
+                    runCatching { http.get("/notices?since=0", app.hapi.companion.feature.chat.jarvis.NoticeList.serializer()) }
+                        .onSuccess { viewModel.setNotices(it.notices) }
+                    kotlinx.coroutines.delay(60_000)
+                }
+            }
+        }
     }
     val micPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),

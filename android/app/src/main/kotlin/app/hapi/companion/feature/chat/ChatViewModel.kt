@@ -380,6 +380,8 @@ class ChatViewModel(
 
     // Jarvis 「화면 비우기」 (step 12): a view floor; rows at or under it are not drawn.
     private val clearedThrough = MutableStateFlow<Long?>(null)
+    // Jarvis 집사가 먼저 한 말 (step 19): server notices drawn between rows.
+    private val notices = MutableStateFlow<List<app.hapi.companion.feature.chat.jarvis.Notice>>(emptyList())
     @Volatile private var loadedRows: List<WindowMessage> = emptyList()
     @Volatile private var clearReached = false
     val reconnecting: StateFlow<Boolean> = sseEngine.reconnecting(subscriptionKey)
@@ -472,6 +474,7 @@ class ChatViewModel(
         val permissionOverrides: Map<String, PermissionRowOverride>,
         val chain: app.hapi.companion.feature.chat.jarvis.HandoffChainState,
         val clearedThrough: Long?,
+        val notices: List<app.hapi.companion.feature.chat.jarvis.Notice>,
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -487,6 +490,7 @@ class ChatViewModel(
                 permissionOverrides,
                 handoffChain.state,
                 clearedThrough,
+                notices,
             ) { values: Array<Any?> -> pipelineInputs(values) }
         }
         // The web samples pipeline runs through React batching; here: emit the
@@ -694,6 +698,11 @@ class ChatViewModel(
     /** Jarvis 「화면 비우기」: the floor from the butler's view prefs (null = nothing hidden). */
     fun setClearedThrough(value: Long?) {
         clearedThrough.value = value
+    }
+
+    /** Jarvis: the server's notices for the butler screen (step 19). */
+    fun setNotices(value: List<app.hapi.companion.feature.chat.jarvis.Notice>) {
+        notices.value = value
     }
 
     /** Jarvis: floor for clearing now — the newest delivered row on hand. */
@@ -1757,6 +1766,7 @@ class ChatViewModel(
             permissionOverrides = values[5] as Map<String, PermissionRowOverride>,
             chain = values[6] as app.hapi.companion.feature.chat.jarvis.HandoffChainState,
             clearedThrough = values[7] as Long?,
+            notices = values[8] as List<app.hapi.companion.feature.chat.jarvis.Notice>,
         )
     }
 
@@ -1795,8 +1805,13 @@ class ChatViewModel(
             window.hasMore ||
                 inputs.chain.mayHaveMore { app.hapi.companion.feature.chat.jarvis.firstUserLocalIdOfRows(window.messages) }
             )
-        val visibleMessages = app.hapi.companion.feature.chat.jarvis.dropHandoffNoise(
-            app.hapi.companion.feature.chat.jarvis.afterClear(loaded, inputs.clearedThrough),
+        val visibleMessages = app.hapi.companion.feature.chat.jarvis.withNotices(
+            app.hapi.companion.feature.chat.jarvis.dropHandoffNoise(
+                app.hapi.companion.feature.chat.jarvis.afterClear(loaded, inputs.clearedThrough),
+            ),
+            inputs.notices,
+            hasOlder = hasMore,
+            clearedThrough = inputs.clearedThrough,
         )
 
         val normalized = ArrayList<NormalizedMessage>(visibleMessages.size)
