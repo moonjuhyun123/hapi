@@ -68,7 +68,12 @@ fun ChatBlockCard(
         is UserTextBlock -> if (app.hapi.companion.feature.chat.jarvis.isOutreachLocalId(block.localId)) {
             app.hapi.companion.feature.chat.jarvis.OutreachChip(block, modifier) // Jarvis: cron instruction
         } else UserTextBlockView(block, modifier)
-        is AgentTextBlock -> AgentTextBlockView(block, modifier)
+        // Jarvis (step 19): a server notice is its own card.
+        is AgentTextBlock -> if (app.hapi.companion.feature.chat.jarvis.isNoticeBlock(block)) {
+            app.hapi.companion.feature.chat.jarvis.NoticeCard(block, modifier)
+        } else {
+            AgentTextBlockView(block, modifier)
+        }
         is AgentReasoningBlock -> AgentReasoningBlockView(block, modifier)
         is AgentEventBlock -> AgentEventBlockView(block, modifier)
         is CliOutputBlock -> CliOutputBlockView(block, modifier)
