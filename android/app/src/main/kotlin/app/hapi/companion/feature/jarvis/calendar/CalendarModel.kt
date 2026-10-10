@@ -31,8 +31,28 @@ data class CalEvent(
 @Serializable
 data class CalTask(val date: String, val title: String, val kind: String = "", val done: Boolean = false)
 
+/** What was done that day — the dashboard calendar's records (workout · dev · review · executor · session). */
 @Serializable
-data class CalMonth(val ym: String, val today: String = "", val events: List<CalEvent> = emptyList(), val tasks: List<CalTask> = emptyList())
+data class CalRecord(val date: String, val type: String, val summary: String, val status: String = "", val detail: String = "")
+
+@Serializable
+data class CalMonth(
+    val ym: String,
+    val today: String = "",
+    val events: List<CalEvent> = emptyList(),
+    val tasks: List<CalTask> = emptyList(),
+    val records: List<CalRecord> = emptyList(),
+)
+
+/** Korean label for a record type; order = how the day list groups them. */
+val RECORD_TYPES = listOf("workout" to "운동", "dev" to "개발", "review" to "리뷰", "company" to "실행기", "session" to "대화")
+
+fun recordLabel(type: String): String = RECORD_TYPES.firstOrNull { it.first == type }?.second ?: type
+
+fun recordsOn(day: LocalDate, records: List<CalRecord>): List<CalRecord> {
+    val order = RECORD_TYPES.map { it.first }
+    return records.filter { it.date == day.toString() }.sortedBy { order.indexOf(it.type).let { i -> if (i < 0) 99 else i } }
+}
 
 /** Six weeks starting on Sunday covering [ym]; days outside the month are kept (drawn faint). */
 fun monthCells(ym: YearMonth): List<LocalDate> {

@@ -88,4 +88,5 @@
     <string name="jarvis_calendar_end">End (optional)</string>
     <string name="jarvis_calendar_delete">Delete</string>
     <string name="jarvis_calendar_cancel">Cancel</string>
+    <string name="jarvis_calendar_done">Done</string>
 </resources>

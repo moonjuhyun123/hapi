@@ -40,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -115,6 +116,7 @@ private fun MonthGrid(ym: YearMonth, selected: LocalDate, month: CalMonth?, onSe
                         day, inMonth = YearMonth.from(day) == ym, isToday = day == today, isSelected = day == selected,
                         events = month?.let { eventsOn(day, it.events) }.orEmpty(),
                         hasTask = month?.let { tasksOn(day, it.tasks).any { t -> !t.done } } == true,
+                        recordTypes = month?.let { recordsOn(day, it.records).map { r -> r.type }.distinct() }.orEmpty(),
                         weekday = i, modifier = Modifier.weight(1f), onClick = { onSelect(day) },
                     )
                 }
@@ -133,7 +135,7 @@ private fun weekdayColor(i: Int, base: Color): Color = when (i) {
 @Composable
 private fun DayCell(
     day: LocalDate, inMonth: Boolean, isToday: Boolean, isSelected: Boolean, events: List<CalEvent>, hasTask: Boolean,
-    weekday: Int, modifier: Modifier, onClick: () -> Unit,
+    recordTypes: List<String>, weekday: Int, modifier: Modifier, onClick: () -> Unit,
 ) {
     val shape = RoundedCornerShape(8.dp)
     Column(
@@ -166,14 +168,29 @@ private fun DayCell(
             )
         }
         if (events.size > 2) Text("+${events.size - 2}", fontSize = 9.sp, color = MaterialTheme.hapi.hint)
-        if (hasTask) Box(Modifier.padding(top = 2.dp).size(5.dp).clip(CircleShape).background(MaterialTheme.colorScheme.tertiary))
+        if (hasTask || recordTypes.isNotEmpty()) {
+            Row(Modifier.padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                if (hasTask) Box(Modifier.size(5.dp).clip(CircleShape).background(MaterialTheme.colorScheme.tertiary))
+                recordTypes.forEach { t -> Box(Modifier.size(5.dp).clip(CircleShape).background(recordColor(t))) }
+            }
+        }
     }
+}
+
+/** Same hue per record type as the dots in the grid. */
+private fun recordColor(type: String): Color = when (type) {
+    "workout" -> Color(0xFF2E9E5B)
+    "dev" -> Color(0xFF3B82F6)
+    "review" -> Color(0xFF9B5DE5)
+    "company" -> Color(0xFFE08A1E)
+    else -> Color(0xFF8A8F98)
 }
 
 @Composable
 private fun DayList(day: LocalDate, month: CalMonth, onEdit: (CalEvent) -> Unit) {
     val events = eventsOn(day, month.events)
     val tasks = tasksOn(day, month.tasks)
+    val records = recordsOn(day, month.records)
     LazyColumn(Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 88.dp)) {
         item(key = "head") {
             Text(
@@ -181,7 +198,7 @@ private fun DayList(day: LocalDate, month: CalMonth, onEdit: (CalEvent) -> Unit)
                 style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(16.dp, 12.dp, 16.dp, 4.dp),
             )
         }
-        if (events.isEmpty() && tasks.isEmpty()) {
+        if (events.isEmpty() && tasks.isEmpty() && records.isEmpty()) {
             item(key = "empty") {
                 Text(stringResource(R.string.jarvis_calendar_empty), color = MaterialTheme.hapi.hint, modifier = Modifier.padding(16.dp, 8.dp))
             }
@@ -215,6 +232,31 @@ private fun DayList(day: LocalDate, month: CalMonth, onEdit: (CalEvent) -> Unit)
                     Text(t.kind, fontSize = 11.sp, color = MaterialTheme.hapi.hint)
                 }
             }
+        }
+        if (records.isNotEmpty()) {
+            item(key = "done-head") {
+                Text(stringResource(R.string.jarvis_calendar_done), style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.hapi.hint, modifier = Modifier.padding(16.dp, 12.dp, 16.dp, 2.dp))
+            }
+            items(records.size, key = { "r:$it" }) { i -> RecordRow(records[i]) }
+        }
+    }
+}
+
+@Composable
+private fun RecordRow(r: CalRecord) {
+    var open by androidx.compose.runtime.saveable.rememberSaveable(r.date, r.type, r.summary) { androidx.compose.runtime.mutableStateOf(false) }
+    Row(
+        Modifier.fillMaxWidth().clickable(enabled = r.detail.isNotEmpty()) { open = !open }.padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(Modifier.width(84.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Box(Modifier.size(8.dp).clip(CircleShape).background(recordColor(r.type)))
+            Text(recordLabel(r.type), fontSize = 13.sp, color = recordColor(r.type))
+        }
+        Column(Modifier.weight(1f)) {
+            Text(r.summary, style = MaterialTheme.typography.bodyMedium, maxLines = if (open) 6 else 2, overflow = TextOverflow.Ellipsis)
+            if (open && r.detail.isNotEmpty()) Text(r.detail, fontSize = 12.sp, color = MaterialTheme.hapi.hint)
         }
     }
 }

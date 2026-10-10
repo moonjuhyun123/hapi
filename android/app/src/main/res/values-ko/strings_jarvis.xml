@@ -88,4 +88,5 @@
     <string name="jarvis_calendar_end">끝(선택)</string>
     <string name="jarvis_calendar_delete">지우기</string>
     <string name="jarvis_calendar_cancel">취소</string>
+    <string name="jarvis_calendar_done">한 것</string>
 </resources>
